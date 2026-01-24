@@ -1,5 +1,7 @@
 # Efficient Coding
 
+English | [中文](README_ZH.md)
+
 ## Worktree
 
 Using [Worktrunk](https://worktrunk.dev/) to manage Worktrees enables parallel feature development and copying a “dirty state” that includes dependencies and uncommitted changes. The relevant config file is located at [.config/wt.toml].
@@ -23,3 +25,8 @@ Notes:
 - Requires `rsync`; if unavailable, change `rsync` to `cp -R` in `.config/wt.toml`.
 - If you don't want to copy dependencies, add `--exclude node_modules --exclude .cache` etc. after `rsync`.
 
+## MCP Servers
+
+| Server | Purpose | Transport | Config | Source |
+| --- | --- | --- | --- | --- |
+| fetcher (fetcher-mcp) | Fetch web page content using a Playwright headless browser. | stdio | `bunx -y fetcher-mcp` | https://www.npmjs.com/package/fetcher-mcp |

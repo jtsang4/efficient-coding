@@ -1,0 +1,4 @@
+[mcp_servers.fetcher]
+type = "stdio"
+command = "bunx"
+args = ["-y", "fetcher-mcp"]

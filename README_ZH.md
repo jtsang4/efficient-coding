@@ -1,5 +1,7 @@
 # Efficient Coding（高效编码）
 
+[English](README.md) | 中文
+
 ## Worktree
 
 通过 [Worktrunk](https://worktrunk.dev/) 管理 Worktree，可实现多特性并行开发，并复制包含依赖与未提交代码的“脏状态”。相关配置文件位于 [.config/wt.toml]。
@@ -22,3 +24,9 @@
 - `--no-verify` 会跳过所有 hooks。
 - 需要 `rsync`；若不可用，可在 `.config/wt.toml` 中将 `rsync` 改为 `cp -R`。
 - 不想复制依赖可在 `rsync` 后追加 `--exclude node_modules --exclude .cache` 等。
+
+## MCP Servers
+
+| 服务器 | 用途 | 传输 | 配置 | 来源 |
+| --- | --- | --- | --- | --- |
+| fetcher (fetcher-mcp) | 使用 Playwright 无头浏览器抓取网页内容。 | stdio | `bunx -y fetcher-mcp` | https://www.npmjs.com/package/fetcher-mcp |
