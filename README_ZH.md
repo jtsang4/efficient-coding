@@ -11,7 +11,7 @@
 
 说明:
 - `.config/wt.toml` 中的 `post-create` hook 会在 `wt switch --create` 创建新 worktree 后执行。
-- 当 `base_worktree_path` 可用时，hook 使用 `rsync` 将基准 worktree 的工作区复制到新 worktree（排除 `.git`）。
+- 当 `base_worktree_path` 可用时，hook 运行 `scripts/wt-copy-from-base` 将基准 worktree 的工作区复制到新 worktree（排除 `.git`）。优先使用写时复制（macOS/APFS: `ditto --clones`；Linux: `cp --reflink=auto`），否则回退到 `rsync`。
 - 建议使用 `--base=@`，让基准为当前 worktree，可稳定触发复制。
 - 如果 `--base` 指向的分支没有对应 worktree，则不会复制。
 
@@ -22,8 +22,8 @@
 
 注意:
 - `--no-verify` 会跳过所有 hooks。
-- 需要 `rsync`；若不可用，可在 `.config/wt.toml` 中将 `rsync` 改为 `cp -R`。
-- 不想复制依赖可在 `rsync` 后追加 `--exclude node_modules --exclude .cache` 等。
+- 至少需要以下其一：`ditto`（macOS）、支持 reflink 的 `cp`（部分 Linux 文件系统）、或 `rsync`。
+- 不想复制依赖可在 `.config/wt.toml` 中设置 `WT_COPY_EXCLUDES`（例如 `WT_COPY_EXCLUDES="node_modules .cache" ...`）。
 
 ## MCP Servers
 

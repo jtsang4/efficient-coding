@@ -1,0 +1,107 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  cat <<'EOF' >&2
+Usage: wt-copy-from-base <base_worktree_path> <worktree_path>
+
+Copies the base worktree working directory into the target worktree, excluding
+.git. Prefers fast copy-on-write (CoW) methods when available.
+
+Env:
+  WT_COPY_EXCLUDES  Space-separated paths to exclude (e.g. "node_modules .cache").
+EOF
+}
+
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+  usage
+  exit 0
+fi
+
+if [[ $# -ne 2 ]]; then
+  usage
+  exit 2
+fi
+
+base_worktree_path="$1"
+worktree_path="$2"
+
+if [[ ! -d "$base_worktree_path" ]]; then
+  echo "wt-copy-from-base: base_worktree_path is not a directory: $base_worktree_path" >&2
+  exit 2
+fi
+
+if [[ ! -d "$worktree_path" ]]; then
+  echo "wt-copy-from-base: worktree_path is not a directory: $worktree_path" >&2
+  exit 2
+fi
+
+# Excludes are interpreted relative to the worktree root.
+excludes=(.git)
+if [[ -n "${WT_COPY_EXCLUDES:-}" ]]; then
+  # shellcheck disable=SC2206
+  excludes+=(${WT_COPY_EXCLUDES})
+fi
+
+# New git worktrees already contain a .git file/dir; never overwrite it.
+clean_target_except_git() {
+  find "$worktree_path" -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+}
+
+copy_with_ditto_clones() {
+  command -v ditto >/dev/null 2>&1 || return 1
+  ditto --help 2>&1 | grep -q -- '--clones' || return 1
+  # On APFS, --clones uses copy-on-write. On other filesystems, it falls back to a normal copy.
+  local -a args
+  args=(--clones)
+  local exclude
+  for exclude in "${excludes[@]}"; do
+    args+=(--exclude "$exclude")
+  done
+  ditto "${args[@]}" "$base_worktree_path/" "$worktree_path/"
+}
+
+copy_with_cp_reflink() {
+  command -v cp >/dev/null 2>&1 || return 1
+  cp --help 2>/dev/null | grep -q -- '--reflink' || return 1
+
+  shopt -s dotglob nullglob
+  local item
+  local base_name
+  local exclude
+  for item in "$base_worktree_path"/*; do
+    base_name="$(basename "$item")"
+    for exclude in "${excludes[@]}"; do
+      [[ "$base_name" == "$exclude" ]] && continue 2
+    done
+    cp -a --reflink=auto "$item" "$worktree_path/"
+  done
+}
+
+copy_with_rsync() {
+  command -v rsync >/dev/null 2>&1 || return 1
+  local -a args
+  args=(-a)
+  local exclude
+  for exclude in "${excludes[@]}"; do
+    args+=(--exclude "$exclude")
+  done
+  rsync "${args[@]}" "$base_worktree_path/" "$worktree_path/"
+}
+
+clean_target_except_git
+
+if copy_with_ditto_clones; then
+  exit 0
+fi
+
+if copy_with_cp_reflink; then
+  exit 0
+fi
+
+if copy_with_rsync; then
+  exit 0
+fi
+
+echo "wt-copy-from-base: no supported copy method found (need ditto, cp with reflink, or rsync)" >&2
+exit 127

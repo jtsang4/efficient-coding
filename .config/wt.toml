@@ -1,2 +1,2 @@
 [post-create]
-copy_from_base = "{% if base_worktree_path %}rsync -a --delete --exclude .git \"{{ base_worktree_path }}/\" \"{{ worktree_path }}/\"{% endif %}"
+copy_from_base = "{% if base_worktree_path %}\"{{ base_worktree_path }}/scripts/wt-copy-from-base\" \"{{ base_worktree_path }}\" \"{{ worktree_path }}\"{% endif %}"

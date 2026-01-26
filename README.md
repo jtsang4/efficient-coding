@@ -11,7 +11,7 @@ Goal:
 
 Details:
 - The `post-create` hook in `.config/wt.toml` runs after `wt switch --create` creates a new worktree.
-- When `base_worktree_path` is available, the hook uses `rsync` to copy the base worktree's working directory into the new worktree (excluding `.git`).
+- When `base_worktree_path` is available, the hook runs `scripts/wt-copy-from-base` to copy the base worktree's working directory into the new worktree (excluding `.git`). It prefers fast copy-on-write methods when available (macOS/APFS: `ditto --clones`; Linux: `cp --reflink=auto`) and falls back to `rsync`.
 - Recommend using `--base=@` so the base is the current worktree, which reliably triggers the copy.
 - If the branch specified by `--base` has no corresponding worktree, nothing is copied.
 
@@ -22,8 +22,8 @@ Usage:
 
 Notes:
 - `--no-verify` skips all hooks.
-- Requires `rsync`; if unavailable, change `rsync` to `cp -R` in `.config/wt.toml`.
-- If you don't want to copy dependencies, add `--exclude node_modules --exclude .cache` etc. after `rsync`.
+- Requires at least one of: `ditto` (macOS), `cp` with reflink support (some Linux filesystems), or `rsync`.
+- If you don't want to copy dependencies, set `WT_COPY_EXCLUDES` in `.config/wt.toml` (e.g. `WT_COPY_EXCLUDES="node_modules .cache" ...`).
 
 ## MCP Servers
 
