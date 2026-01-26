@@ -55,6 +55,24 @@ Skills 是可复用的“能力/流程/方法论”，用来指导如何推进�
 | [`subagent-driven-development`](.codex/skills/subagent-driven-development/SKILL.md) | 推进 | 在当前会话逐任务派发子代理，并做“spec 合规 → 代码质量”两阶段 review。 |
 | [`test-driven-development`](.codex/skills/test-driven-development/SKILL.md) | 实现 | 编码阶段：Red → Green → Refactor（没有失败测试不写生产代码）。 |
 
+<details>
+<summary>Skill 来源（可选展开）</summary>
+
+下表列出了从外部仓库安装/更新的 skills 的来源仓库。
+
+安装/更新模板：`bunx skills add <source_repo_url> --skill <skill>`
+
+| Skill | 来源仓库 |
+| --- | --- |
+| `brainstorming` | [`obra/superpowers`](https://github.com/obra/superpowers) |
+| `systematic-debugging` | [`obra/superpowers`](https://github.com/obra/superpowers) |
+| `writing-plans` | [`obra/superpowers`](https://github.com/obra/superpowers) |
+| `executing-plans` | [`obra/superpowers`](https://github.com/obra/superpowers) |
+| `subagent-driven-development` | [`obra/superpowers`](https://github.com/obra/superpowers) |
+| `test-driven-development` | [`obra/superpowers`](https://github.com/obra/superpowers) |
+
+</details>
+
 ### 怎么用
 
 - 想强制触发某个 skill：在指令里直接点名（点名优先）。

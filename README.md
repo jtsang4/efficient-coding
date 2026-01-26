@@ -55,6 +55,24 @@ Skills are reusable capability/workflow/methodology playbooks you can invoke to 
 | [`subagent-driven-development`](.codex/skills/subagent-driven-development/SKILL.md) | Execution | Run a plan in-session: one subagent per task + spec/quality review loops. |
 | [`test-driven-development`](.codex/skills/test-driven-development/SKILL.md) | Implementation | Any feature/bugfix/refactor: Red → Green → Refactor (no code without a failing test). |
 
+<details>
+<summary>Skill sources (optional)</summary>
+
+This table lists the source repositories for skills installed/updated from external repos.
+
+Install/update template: `bunx skills add <source_repo_url> --skill <skill>`
+
+| Skill | Source repo |
+| --- | --- |
+| `brainstorming` | [`obra/superpowers`](https://github.com/obra/superpowers) |
+| `systematic-debugging` | [`obra/superpowers`](https://github.com/obra/superpowers) |
+| `writing-plans` | [`obra/superpowers`](https://github.com/obra/superpowers) |
+| `executing-plans` | [`obra/superpowers`](https://github.com/obra/superpowers) |
+| `subagent-driven-development` | [`obra/superpowers`](https://github.com/obra/superpowers) |
+| `test-driven-development` | [`obra/superpowers`](https://github.com/obra/superpowers) |
+
+</details>
+
 ### How to use
 
 - If you want a specific skill, say so explicitly (named skill wins).
