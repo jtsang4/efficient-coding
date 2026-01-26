@@ -7,6 +7,7 @@ Usage: wt-copy-from-base <base_worktree_path> <worktree_path>
 
 Copies the base worktree working directory into the target worktree, excluding
 .git. Prefers fast copy-on-write (CoW) methods when available.
+On macOS, prefers `cp -c` (clonefile); on Linux, prefers `cp --reflink=auto`.
 
 Env:
   WT_COPY_EXCLUDES  Space-separated paths to exclude (e.g. "node_modules .cache").
@@ -51,6 +52,7 @@ clean_target_except_git() {
 copy_with_ditto_clones() {
   command -v ditto >/dev/null 2>&1 || return 1
   ditto --help 2>&1 | grep -q -- '--clones' || return 1
+  clean_target_except_git
   # On APFS, --clones uses copy-on-write. On other filesystems, it falls back to a normal copy.
   local -a args
   args=(--clones)
@@ -58,12 +60,13 @@ copy_with_ditto_clones() {
   for exclude in "${excludes[@]}"; do
     args+=(--exclude "$exclude")
   done
-  ditto "${args[@]}" "$base_worktree_path/" "$worktree_path/"
+  ditto "${args[@]}" "$base_worktree_path/" "$worktree_path/" || return 1
 }
 
-copy_with_cp_reflink() {
+copy_with_macos_clonefile() {
+  [[ "$(uname -s)" == "Darwin" ]] || return 1
   command -v cp >/dev/null 2>&1 || return 1
-  cp --help 2>/dev/null | grep -q -- '--reflink' || return 1
+  clean_target_except_git
 
   shopt -s dotglob nullglob
   local item
@@ -74,24 +77,63 @@ copy_with_cp_reflink() {
     for exclude in "${excludes[@]}"; do
       [[ "$base_name" == "$exclude" ]] && continue 2
     done
-    cp -a --reflink=auto "$item" "$worktree_path/"
+
+    # `-c` uses clonefile(2) (copy-on-write) when available (e.g. APFS on the same volume).
+    cp -c -R -p "$item" "$worktree_path/" || return 1
+  done
+}
+
+copy_with_ditto() {
+  command -v ditto >/dev/null 2>&1 || return 1
+  clean_target_except_git
+  local -a args
+  args=()
+  local exclude
+  for exclude in "${excludes[@]}"; do
+    args+=(--exclude "$exclude")
+  done
+  ditto "${args[@]}" "$base_worktree_path/" "$worktree_path/" || return 1
+}
+
+copy_with_cp_reflink() {
+  command -v cp >/dev/null 2>&1 || return 1
+  cp --help 2>/dev/null | grep -q -- '--reflink' || return 1
+  clean_target_except_git
+
+  shopt -s dotglob nullglob
+  local item
+  local base_name
+  local exclude
+  for item in "$base_worktree_path"/*; do
+    base_name="$(basename "$item")"
+    for exclude in "${excludes[@]}"; do
+      [[ "$base_name" == "$exclude" ]] && continue 2
+    done
+    cp -a --reflink=auto "$item" "$worktree_path/" || return 1
   done
 }
 
 copy_with_rsync() {
   command -v rsync >/dev/null 2>&1 || return 1
+  clean_target_except_git
   local -a args
   args=(-a)
   local exclude
   for exclude in "${excludes[@]}"; do
     args+=(--exclude "$exclude")
   done
-  rsync "${args[@]}" "$base_worktree_path/" "$worktree_path/"
+  rsync "${args[@]}" "$base_worktree_path/" "$worktree_path/" || return 1
 }
 
-clean_target_except_git
+if copy_with_macos_clonefile; then
+  exit 0
+fi
 
 if copy_with_ditto_clones; then
+  exit 0
+fi
+
+if copy_with_ditto; then
   exit 0
 fi
 
@@ -103,5 +145,5 @@ if copy_with_rsync; then
   exit 0
 fi
 
-echo "wt-copy-from-base: no supported copy method found (need ditto, cp with reflink, or rsync)" >&2
+echo "wt-copy-from-base: no supported copy method found (need macOS cp, ditto, GNU cp with reflink, or rsync)" >&2
 exit 127
