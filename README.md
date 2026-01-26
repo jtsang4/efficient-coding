@@ -2,6 +2,17 @@
 
 English | [中文](README_ZH.md)
 
+## Installation
+
+Prerequisites:
+- [Worktrunk (`wt`)](https://worktrunk.dev/): Worktree manager; can be used with `.config/wt.toml`.
+
+Paste this to Codex (or any coding agent) in your target repo and ask it to run it:
+
+```
+Install (or update) the "efficient-coding" overlay in this repository by following https://github.com/jtsang4/efficient-coding/blob/main/INSTALLATION.md . Make minimal, safe changes; merge (don’t overwrite) if local `.codex/config.toml` or `.config/wt.toml` already exist.
+```
+
 ## Worktree
 
 Using [Worktrunk](https://worktrunk.dev/) to manage Worktrees enables parallel feature development and copying a “dirty state” that includes dependencies and uncommitted changes. The relevant config file is located at [.config/wt.toml].

@@ -2,6 +2,17 @@
 
 [English](README.md) | 中文
 
+## Installation
+
+前置条件：
+- [Worktrunk（`wt`）](https://worktrunk.dev/)：Worktree 管理工具，可以搭配 `.config/wt.toml` 使用。
+
+在目标仓库里把下面这段话粘贴给 Codex（或任意 coding agent），让它照做即可自动完成安装/更新：
+
+```
+请按照 https://github.com/jtsang4/efficient-coding/blob/main/INSTALLATION.md 的说明，在当前仓库安装（或更新）efficient-coding overlay。要求：修改尽量少且安全；如果本仓库已有 `.codex/config.toml` 或 `.config/wt.toml`，请以合并为主，不要直接覆盖。
+```
+
 ## Worktree
 
 通过 [Worktrunk](https://worktrunk.dev/) 管理 Worktree，可实现多特性并行开发，并复制包含依赖与未提交代码的“脏状态”。相关配置文件位于 [.config/wt.toml]。
