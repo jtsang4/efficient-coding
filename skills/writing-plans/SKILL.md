@@ -14,7 +14,7 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
 **Announce at start:** "I'm using the writing-plans skill to create the implementation plan."
 
 **Context:** This should be run in a dedicated worktree.
-- Delegate worktree creation/switching to `worktrunk-worktree-manager`.
+- Delegate worktree creation/switching to `worktree-manager`.
 - Default intent: the worktree should **copy the current working state** so the plan can be executed without disturbing the original workspace.
 
 **Save plans to:** `docs/plans/YYYY-MM-DD-<feature-name>.md`
@@ -114,5 +114,5 @@ After saving the plan, offer execution choice:
 - Fresh subagent per task + code review
 
 **If Parallel Session chosen:**
-- Guide them to open a new session in a dedicated worktree by delegating to `worktrunk-worktree-manager` (same default intent: copy current working state)
+- Guide them to open a new session in a dedicated worktree by delegating to `worktree-manager` (same default intent: copy current working state)
 - **REQUIRED SUB-SKILL:** New session uses superpowers:executing-plans

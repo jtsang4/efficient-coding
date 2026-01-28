@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "fetcher": {
+      "command": "bunx",
+      "args": ["-y", "fetcher-mcp"]
+    }
+  }
+}

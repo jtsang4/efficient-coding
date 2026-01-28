@@ -29,7 +29,7 @@ digraph when_to_use {
 - Unclear where invalid data originated
 - Need to find which test/code triggers the problem
 
-If isolating the repro would help, create/switch to a dedicated worktree by delegating to `worktrunk-worktree-manager` (avoid ad-hoc worktree commands in this repo).
+If isolating the repro would help, create/switch to a dedicated worktree by delegating to `worktree-manager` (avoid ad-hoc worktree commands in this repo).
 
 ## The Tracing Process
 

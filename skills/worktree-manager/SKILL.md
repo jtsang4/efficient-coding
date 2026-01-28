@@ -1,9 +1,9 @@
 ---
-name: worktrunk-worktree-manager
+name: worktree-manager
 description: Manage Git worktrees using Worktrunk (worktrunk.dev) via the `wt` CLI. Use when asked to create/switch/list/merge/remove worktrees, to keep multiple branches in parallel directories, or to clean up worktrees safely during development. If `wt` is missing, ask whether to auto-install Worktrunk and then install it (do not install without confirmation).
 ---
 
-# Worktrunk Worktree Manager
+# Worktree Manager
 
 ## Overview
 

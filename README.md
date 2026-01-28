@@ -18,7 +18,7 @@ Skills are reusable capability/workflow/methodology playbooks you can invoke to 
 | [`executing-plans`](skills/executing-plans/SKILL.md) | Execution | Run a written plan in small batches with review checkpoints. |
 | [`subagent-driven-development`](skills/subagent-driven-development/SKILL.md) | Execution | Run a plan in-session: one subagent per task + spec/quality review loops. |
 | [`test-driven-development`](skills/test-driven-development/SKILL.md) | Implementation | Any feature/bugfix/refactor: Red → Green → Refactor (no code without a failing test). |
-| [`worktrunk-worktree-manager`](skills/worktrunk-worktree-manager/SKILL.md) | Workflow | Worktree management via Worktrunk (`wt`): switch/create/list/merge/remove with safety guardrails. |
+| [`worktree-manager`](skills/worktree-manager/SKILL.md) | Workflow | Worktree management via Worktrunk (`wt`): switch/create/list/merge/remove with safety guardrails. |
 
 ### Install
 
@@ -40,9 +40,9 @@ Install/update template: `bunx skills add <source_repo> --skill <skill>` (exampl
 
 | Skill | Source repo | Notes |
 | --- | --- | --- |
-| `brainstorming` | [`obra/superpowers`](https://github.com/obra/superpowers) | Worktree ops are delegated to `worktrunk-worktree-manager` (copy current working state). |
-| `systematic-debugging` | [`obra/superpowers`](https://github.com/obra/superpowers) | If you need a dedicated worktree to isolate a repro, use `worktrunk-worktree-manager`. |
-| `writing-plans` | [`obra/superpowers`](https://github.com/obra/superpowers) | Worktree ops are delegated to `worktrunk-worktree-manager` (copy current working state). |
+| `brainstorming` | [`obra/superpowers`](https://github.com/obra/superpowers) | Worktree ops are delegated to `worktree-manager` (copy current working state). |
+| `systematic-debugging` | [`obra/superpowers`](https://github.com/obra/superpowers) | If you need a dedicated worktree to isolate a repro, use `worktree-manager`. |
+| `writing-plans` | [`obra/superpowers`](https://github.com/obra/superpowers) | Worktree ops are delegated to `worktree-manager` (copy current working state). |
 | `executing-plans` | [`obra/superpowers`](https://github.com/obra/superpowers) |  |
 | `subagent-driven-development` | [`obra/superpowers`](https://github.com/obra/superpowers) |  |
 | `test-driven-development` | [`obra/superpowers`](https://github.com/obra/superpowers) |  |
@@ -55,4 +55,4 @@ Install/update template: `bunx skills add <source_repo> --skill <skill>` (exampl
 | --- | --- | --- | --- | --- |
 | fetcher (fetcher-mcp) | Fetch web page content using a Playwright headless browser. | stdio | `bunx -y fetcher-mcp` | https://www.npmjs.com/package/fetcher-mcp |
 
-To use an MCP server, add it to your coding agent’s MCP configuration. An example (Codex CLI) config lives at `.codex/config.toml`.
+To use an MCP server, add it to your coding agent’s MCP configuration. A generic example config lives at `.mcp.json`.

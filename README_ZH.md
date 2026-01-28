@@ -18,7 +18,7 @@ Skills 是可复用的“能力/流程/方法论”，用来指导如何推进�
 | [`executing-plans`](skills/executing-plans/SKILL.md) | 推进 | 按计划分批执行，每批有检查点与复核。 |
 | [`subagent-driven-development`](skills/subagent-driven-development/SKILL.md) | 推进 | 在当前会话逐任务派发子代理，并做“spec 合规 → 代码质量”两阶段 review。 |
 | [`test-driven-development`](skills/test-driven-development/SKILL.md) | 实现 | 编码阶段：Red → Green → Refactor（没有失败测试不写生产代码）。 |
-| [`worktrunk-worktree-manager`](skills/worktrunk-worktree-manager/SKILL.md) | 流程 | 基于 Worktrunk（`wt`）的 worktree 管理：switch/create/list/merge/remove + 安全护栏。 |
+| [`worktree-manager`](skills/worktree-manager/SKILL.md) | 流程 | 基于 Worktrunk（`wt`）的 worktree 管理：switch/create/list/merge/remove + 安全护栏。 |
 
 ### 安装
 
@@ -40,9 +40,9 @@ Skills 是可复用的“能力/流程/方法论”，用来指导如何推进�
 
 | Skill | 来源仓库 | 备注 |
 | --- | --- | --- |
-| `brainstorming` | [`obra/superpowers`](https://github.com/obra/superpowers) | worktree 操作统一委托给 `worktrunk-worktree-manager`（复制当前 working state）。 |
-| `systematic-debugging` | [`obra/superpowers`](https://github.com/obra/superpowers) | 需要 dedicated worktree 隔离复现时，用 `worktrunk-worktree-manager`。 |
-| `writing-plans` | [`obra/superpowers`](https://github.com/obra/superpowers) | worktree 操作统一委托给 `worktrunk-worktree-manager`（复制当前 working state）。 |
+| `brainstorming` | [`obra/superpowers`](https://github.com/obra/superpowers) | worktree 操作统一委托给 `worktree-manager`（复制当前 working state）。 |
+| `systematic-debugging` | [`obra/superpowers`](https://github.com/obra/superpowers) | 需要 dedicated worktree 隔离复现时，用 `worktree-manager`。 |
+| `writing-plans` | [`obra/superpowers`](https://github.com/obra/superpowers) | worktree 操作统一委托给 `worktree-manager`（复制当前 working state）。 |
 | `executing-plans` | [`obra/superpowers`](https://github.com/obra/superpowers) |  |
 | `subagent-driven-development` | [`obra/superpowers`](https://github.com/obra/superpowers) |  |
 | `test-driven-development` | [`obra/superpowers`](https://github.com/obra/superpowers) |  |
@@ -55,4 +55,4 @@ Skills 是可复用的“能力/流程/方法论”，用来指导如何推进�
 | --- | --- | --- | --- | --- |
 | fetcher (fetcher-mcp) | 使用 Playwright 无头浏览器抓取网页内容。 | stdio | `bunx -y fetcher-mcp` | https://www.npmjs.com/package/fetcher-mcp |
 
-使用 MCP Server 时，把它添加到你所用 coding agent 的 MCP 配置里即可。Codex CLI 的示例配置见 `.codex/config.toml`。
+使用 MCP Server 时，把它添加到你所用 coding agent 的 MCP 配置里即可。更通用的示例配置见 `.mcp.json`。
