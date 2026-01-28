@@ -17,7 +17,9 @@ Do not preflight-check `wt` on every invocation. Instead, attempt the requested 
 
 1. Ask the user: "I can't run `wt` because it isn't installed. Should I install Worktrunk now (recommended)?"
 2. If the user says yes:
-   - Run: `bash .agents/skills/worktrunk-worktree-manager/scripts/install_worktrunk.sh`
+   - Run the installer script:
+     `scripts/install_worktrunk.sh`
+     - Example: `bash <SKILL_DIR>/scripts/install_worktrunk.sh`
    - Verify: `wt --version`
    - Re-run the original `wt ...` command.
 3. Do not install shell integration without confirmation (it edits shell rc files):
