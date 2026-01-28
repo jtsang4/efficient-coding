@@ -44,8 +44,6 @@ Skills are reusable capability/workflow/methodology playbooks you can invoke to 
 
 This table lists the source repositories for skills installed/updated from external repos. The Notes column summarizes local customizations in this repo (if any).
 
-Install/update template: `bunx skills add <source_repo> --skill <skill>` (example: `bunx skills add http://github.com/jtsang4/efficient-coding --skill brainstorming`)
-
 | Skill | Source repo | Notes |
 | --- | --- | --- |
 | `brainstorming` | [`obra/superpowers`](https://github.com/obra/superpowers) | Worktree ops are delegated to `worktree-manager` (copy current working state). |

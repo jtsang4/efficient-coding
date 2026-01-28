@@ -44,8 +44,6 @@ Skills 是可复用的“能力/流程/方法论”，用来指导如何推进�
 
 下表列出了从外部仓库安装/更新的 skills 的来源仓库；“备注”列用于简要说明本仓库对这些 skills 的本地定制（如有）。
 
-安装/更新模板：`bunx skills add <source_repo> --skill <skill>`（例如：`bunx skills add http://github.com/jtsang4/efficient-coding --skill brainstorming`）
-
 | Skill | 来源仓库 | 备注 |
 | --- | --- | --- |
 | `brainstorming` | [`obra/superpowers`](https://github.com/obra/superpowers) | worktree 操作统一委托给 `worktree-manager`（复制当前 working state）。 |
