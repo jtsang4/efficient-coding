@@ -59,19 +59,18 @@ Skills 是可复用的“能力/流程/方法论”，用来指导如何推进�
 <details>
 <summary>Skill 来源（可选展开）</summary>
 
-下表列出了从外部仓库安装/更新的 skills 的来源仓库。
+下表列出了从外部仓库安装/更新的 skills 的来源仓库；“备注”列用于简要说明本仓库对这些 skills 的本地定制（如有）。
 
 安装/更新模板：`bunx skills add <source_repo_url> --skill <skill>`
 
-| Skill | 来源仓库 |
-| --- | --- |
-| `brainstorming` | [`obra/superpowers`](https://github.com/obra/superpowers) |
-| `systematic-debugging` | [`obra/superpowers`](https://github.com/obra/superpowers) |
-| `writing-plans` | [`obra/superpowers`](https://github.com/obra/superpowers) |
-| `executing-plans` | [`obra/superpowers`](https://github.com/obra/superpowers) |
-| `subagent-driven-development` | [`obra/superpowers`](https://github.com/obra/superpowers) |
-| `test-driven-development` | [`obra/superpowers`](https://github.com/obra/superpowers) |
-| `worktrunk-worktree-manager` | 自定义 skill |
+| Skill | 来源仓库 | 备注 |
+| --- | --- | --- |
+| `brainstorming` | [`obra/superpowers`](https://github.com/obra/superpowers) | worktree 操作统一委托给 `worktrunk-worktree-manager`（复制当前 working state）。 |
+| `systematic-debugging` | [`obra/superpowers`](https://github.com/obra/superpowers) | 需要 dedicated worktree 隔离复现时，用 `worktrunk-worktree-manager`。 |
+| `writing-plans` | [`obra/superpowers`](https://github.com/obra/superpowers) | worktree 操作统一委托给 `worktrunk-worktree-manager`（复制当前 working state）。 |
+| `executing-plans` | [`obra/superpowers`](https://github.com/obra/superpowers) |  |
+| `subagent-driven-development` | [`obra/superpowers`](https://github.com/obra/superpowers) |  |
+| `test-driven-development` | [`obra/superpowers`](https://github.com/obra/superpowers) |  |
 
 </details>
 

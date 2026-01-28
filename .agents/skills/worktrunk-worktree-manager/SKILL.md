@@ -45,13 +45,17 @@ Goal: "Put branch X into its own directory and switch into it."
 1. If the user gave a branch/worktree name:
    - `wt switch <name>`
 2. If the user asked to create a new branch/worktree:
-   - `wt switch --create <name>`
+   - Default (this repo): create the worktree by **copying the current working state** from the current worktree, so experiments are isolated but start "warm" (deps + uncommitted changes).
+   - Implement with Worktrunk by creating from the current worktree as the base (use `--base=@` unless the user explicitly wants a clean base).
+   - Run: `wt switch --create <name> --base=@`
 3. If the user gave no name:
    - Show options with `wt list` and ask which one to switch to.
 
 Notes:
 - Do not invent naming conventions; follow the repo's existing pattern (or ask).
 - If `wt switch` does not change directories in the current shell, suggest enabling shell integration (with confirmation) via `wt config shell install`.
+- This repo has Worktrunk hooks in `.config/wt.toml` (notably `post-create`) that may copy the base worktree's working directory into a new worktree.
+- If the user explicitly wants a completely clean worktree (skip all hooks/copy behavior), pass `--no-verify` (e.g. `wt switch --create <name> --base=@ --no-verify`).
 
 #### B) List and diagnose global worktree state
 

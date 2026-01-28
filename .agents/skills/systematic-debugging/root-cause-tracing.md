@@ -29,6 +29,8 @@ digraph when_to_use {
 - Unclear where invalid data originated
 - Need to find which test/code triggers the problem
 
+If isolating the repro would help, create/switch to a dedicated worktree by delegating to `worktrunk-worktree-manager` (avoid ad-hoc worktree commands in this repo).
+
 ## The Tracing Process
 
 ### 1. Observe the Symptom
@@ -44,7 +46,7 @@ await execFileAsync('git', ['init'], { cwd: projectDir });
 
 ### 3. Ask: What Called This?
 ```typescript
-WorktreeManager.createSessionWorktree(projectDir, sessionId)
+createWorktreeForSession(projectDir, sessionId)
   → called by Session.initializeWorkspace()
   → called by Session.create()
   → called by test at Project.create()
@@ -112,7 +114,7 @@ Runs tests one-by-one, stops at first polluter. See script for usage.
 
 **Trace chain:**
 1. `git init` runs in `process.cwd()` ← empty cwd parameter
-2. WorktreeManager called with empty projectDir
+2. Worktree-creation helper called with empty projectDir
 3. Session.create() passed empty string
 4. Test accessed `context.tempDir` before beforeEach
 5. setupCoreTest() returns `{ tempDir: '' }` initially

@@ -59,19 +59,18 @@ Skills are reusable capability/workflow/methodology playbooks you can invoke to 
 <details>
 <summary>Skill sources (optional)</summary>
 
-This table lists the source repositories for skills installed/updated from external repos.
+This table lists the source repositories for skills installed/updated from external repos. The Notes column summarizes local customizations in this repo (if any).
 
 Install/update template: `bunx skills add <source_repo_url> --skill <skill>`
 
-| Skill | Source repo |
-| --- | --- |
-| `brainstorming` | [`obra/superpowers`](https://github.com/obra/superpowers) |
-| `systematic-debugging` | [`obra/superpowers`](https://github.com/obra/superpowers) |
-| `writing-plans` | [`obra/superpowers`](https://github.com/obra/superpowers) |
-| `executing-plans` | [`obra/superpowers`](https://github.com/obra/superpowers) |
-| `subagent-driven-development` | [`obra/superpowers`](https://github.com/obra/superpowers) |
-| `test-driven-development` | [`obra/superpowers`](https://github.com/obra/superpowers) |
-| `worktrunk-worktree-manager` | Custom skill |
+| Skill | Source repo | Notes |
+| --- | --- | --- |
+| `brainstorming` | [`obra/superpowers`](https://github.com/obra/superpowers) | Worktree ops are delegated to `worktrunk-worktree-manager` (copy current working state). |
+| `systematic-debugging` | [`obra/superpowers`](https://github.com/obra/superpowers) | If you need a dedicated worktree to isolate a repro, use `worktrunk-worktree-manager`. |
+| `writing-plans` | [`obra/superpowers`](https://github.com/obra/superpowers) | Worktree ops are delegated to `worktrunk-worktree-manager` (copy current working state). |
+| `executing-plans` | [`obra/superpowers`](https://github.com/obra/superpowers) |  |
+| `subagent-driven-development` | [`obra/superpowers`](https://github.com/obra/superpowers) |  |
+| `test-driven-development` | [`obra/superpowers`](https://github.com/obra/superpowers) |  |
 
 </details>
 

@@ -41,7 +41,8 @@ Start by understanding the current project context, then ask questions one at a 
 
 **Implementation (if continuing):**
 - Ask: "Ready to set up for implementation?"
-- Use superpowers:using-git-worktrees to create isolated workspace
+- Delegate all worktree operations to the `worktrunk-worktree-manager` skill.
+  - Ask it to create/switch to a dedicated implementation worktree that **copies the current working state** (uncommitted changes + local deps) so experimentation is isolated and repeatable.
 - Use superpowers:writing-plans to create detailed implementation plan
 
 ## Key Principles
