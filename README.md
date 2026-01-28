@@ -54,6 +54,7 @@ Skills are reusable capability/workflow/methodology playbooks you can invoke to 
 | [`executing-plans`](.codex/skills/executing-plans/SKILL.md) | Execution | Run a written plan in small batches with review checkpoints. |
 | [`subagent-driven-development`](.codex/skills/subagent-driven-development/SKILL.md) | Execution | Run a plan in-session: one subagent per task + spec/quality review loops. |
 | [`test-driven-development`](.codex/skills/test-driven-development/SKILL.md) | Implementation | Any feature/bugfix/refactor: Red → Green → Refactor (no code without a failing test). |
+| [`worktrunk-worktree-manager`](.codex/skills/worktrunk-worktree-manager/SKILL.md) | Workflow | Worktree management via Worktrunk (`wt`): switch/create/list/merge/remove with safety guardrails. |
 
 <details>
 <summary>Skill sources (optional)</summary>
@@ -70,6 +71,7 @@ Install/update template: `bunx skills add <source_repo_url> --skill <skill>`
 | `executing-plans` | [`obra/superpowers`](https://github.com/obra/superpowers) |
 | `subagent-driven-development` | [`obra/superpowers`](https://github.com/obra/superpowers) |
 | `test-driven-development` | [`obra/superpowers`](https://github.com/obra/superpowers) |
+| `worktrunk-worktree-manager` | Custom skill |
 
 </details>
 

@@ -54,6 +54,7 @@ Skills 是可复用的“能力/流程/方法论”，用来指导如何推进�
 | [`executing-plans`](.codex/skills/executing-plans/SKILL.md) | 推进 | 按计划分批执行，每批有检查点与复核。 |
 | [`subagent-driven-development`](.codex/skills/subagent-driven-development/SKILL.md) | 推进 | 在当前会话逐任务派发子代理，并做“spec 合规 → 代码质量”两阶段 review。 |
 | [`test-driven-development`](.codex/skills/test-driven-development/SKILL.md) | 实现 | 编码阶段：Red → Green → Refactor（没有失败测试不写生产代码）。 |
+| [`worktrunk-worktree-manager`](.codex/skills/worktrunk-worktree-manager/SKILL.md) | 流程 | 基于 Worktrunk（`wt`）的 worktree 管理：switch/create/list/merge/remove + 安全护栏。 |
 
 <details>
 <summary>Skill 来源（可选展开）</summary>
@@ -70,6 +71,7 @@ Skills 是可复用的“能力/流程/方法论”，用来指导如何推进�
 | `executing-plans` | [`obra/superpowers`](https://github.com/obra/superpowers) |
 | `subagent-driven-development` | [`obra/superpowers`](https://github.com/obra/superpowers) |
 | `test-driven-development` | [`obra/superpowers`](https://github.com/obra/superpowers) |
+| `worktrunk-worktree-manager` | 自定义 skill |
 
 </details>
 
