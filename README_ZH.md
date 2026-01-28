@@ -3,8 +3,16 @@
 [English](README.md) | 中文
 
 这个仓库包含：
+- 可选的 MCP Server 配置。
 - 可复用的 agent skills/playbooks（用 `bunx skills add` 安装）。
-- 可选的 MCP Server 配置（让 agent 能抓取网页等）。
+
+## MCP Servers
+
+| 服务器 | 用途 | 传输 | 命令 | 来源 |
+| --- | --- | --- | --- | --- |
+| fetcher (fetcher-mcp) | 使用 Playwright 无头浏览器抓取网页内容。 | stdio | `bunx -y fetcher-mcp` | https://www.npmjs.com/package/fetcher-mcp |
+
+使用 MCP Server 时，把它添加到你所用 coding agent 的 MCP 配置里即可。更通用的示例配置见 `.mcp.json`。
 
 ## Skills
 
@@ -49,10 +57,14 @@ Skills 是可复用的“能力/流程/方法论”，用来指导如何推进�
 
 </details>
 
-## MCP Servers
+## Config
 
-| 服务器 | 用途 | 传输 | 命令 | 来源 |
-| --- | --- | --- | --- | --- |
-| fetcher (fetcher-mcp) | 使用 Playwright 无头浏览器抓取网页内容。 | stdio | `bunx -y fetcher-mcp` | https://www.npmjs.com/package/fetcher-mcp |
+推荐配置：
 
-使用 MCP Server 时，把它添加到你所用 coding agent 的 MCP 配置里即可。更通用的示例配置见 `.mcp.json`。
+| 配置项 | 文件 | 作用 | 备注 |
+| --- | --- | --- | --- |
+| Worktrunk “copy from base” hook | `.config/wt.toml`、`scripts/wt-copy-from-base` | Worktrunk 创建新 worktree 时，将 base worktree 的当前工作空间状态复制到新 worktree（而不是得到一个完全干净的 worktree）。 | 方便把 git ignore 的文件（如项目依赖、`.env`、缓存等）快速带到新 worktree 中，提升开发效率。建议搭配 `worktree-manager` skill 使用。 |
+
+## License
+
+MIT 协议，详见 [`LICENSE`](LICENSE)。

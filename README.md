@@ -3,8 +3,16 @@
 English | [中文](README_ZH.md)
 
 This repo contains:
+- Optional MCP server configuration.
 - Reusable agent skills/playbooks you can install via `bunx skills add`.
-- Optional MCP server configuration (so your agent can fetch web pages, etc.).
+
+## MCP Servers
+
+| Server | Purpose | Transport | Command | Source |
+| --- | --- | --- | --- | --- |
+| fetcher (fetcher-mcp) | Fetch web page content using a Playwright headless browser. | stdio | `bunx -y fetcher-mcp` | https://www.npmjs.com/package/fetcher-mcp |
+
+To use an MCP server, add it to your coding agent’s MCP configuration. A generic example config lives at `.mcp.json`.
 
 ## Skills
 
@@ -49,10 +57,14 @@ Install/update template: `bunx skills add <source_repo> --skill <skill>` (exampl
 
 </details>
 
-## MCP Servers
+## Config
 
-| Server | Purpose | Transport | Command | Source |
-| --- | --- | --- | --- | --- |
-| fetcher (fetcher-mcp) | Fetch web page content using a Playwright headless browser. | stdio | `bunx -y fetcher-mcp` | https://www.npmjs.com/package/fetcher-mcp |
+Recommended repo configuration:
 
-To use an MCP server, add it to your coding agent’s MCP configuration. A generic example config lives at `.mcp.json`.
+| Config | Files | What it does | Notes |
+| --- | --- | --- | --- |
+| Worktrunk “copy from base” hook | `.config/wt.toml`, `scripts/wt-copy-from-base` | When Worktrunk creates a new worktree, it copies the current workspace state from the base worktree into the new one (instead of a completely clean worktree). | Makes it easy to carry along git-ignored files like local dependencies, `.env`, caches, etc. Pairs well with the `worktree-manager` skill. |
+
+## License
+
+MIT. See [`LICENSE`](LICENSE).
