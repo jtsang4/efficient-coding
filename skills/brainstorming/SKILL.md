@@ -1,6 +1,6 @@
 ---
 name: brainstorming
-description: "You MUST use this before any creative work - creating features, building components, adding functionality, or modifying behavior. Explores user intent, requirements and design before implementation."
+description: "Use only when the user explicitly asks to do brainstorming (e.g., says 'brainstorm'/'头脑风暴' or invokes $brainstorming). Do not auto-trigger based on general creative work."
 ---
 
 # Brainstorming Ideas Into Designs
