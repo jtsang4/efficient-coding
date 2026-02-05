@@ -21,6 +21,7 @@ Skills are reusable capability/workflow/methodology playbooks you can invoke to 
 | Skill | Category | When to use |
 | --- | --- | --- |
 | [`brainstorming`](skills/brainstorming/SKILL.md) | Workflow | New feature / unclear requirements; produce a design/spec first. |
+| [`dev-browser`](skills/dev-browser/SKILL.md) | Automation | Browser/web automation: navigate pages, click/fill forms, take screenshots, scrape data, or test authenticated flows. |
 | [`systematic-debugging`](skills/systematic-debugging/SKILL.md) | Workflow | Bugs, flakes, or “unexpected behavior”; find root cause before fixing. |
 | [`writing-plans`](skills/writing-plans/SKILL.md) | Workflow | Approach is decided; turn it into an executable plan with steps + verification. |
 | [`executing-plans`](skills/executing-plans/SKILL.md) | Execution | Run a written plan in small batches with review checkpoints. |
@@ -38,6 +39,7 @@ Skills are reusable capability/workflow/methodology playbooks you can invoke to 
 - If you want a specific skill, say so explicitly (named skill wins).
 - If multiple skills apply, default to workflow first: `brainstorming`/`systematic-debugging` → `writing-plans` → execute (`executing-plans` | `subagent-driven-development`) → `test-driven-development` inside each task.
 - For bugs: `systematic-debugging` → add a failing test → fix with `test-driven-development`.
+- For browser interaction tasks (navigate/click/fill/screenshot/scrape), use `dev-browser`.
 
 <details>
 <summary>Skill sources (optional)</summary>
