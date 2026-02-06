@@ -22,6 +22,7 @@ Skills are reusable capability/workflow/methodology playbooks you can invoke to 
 | --- | --- | --- |
 | [`brainstorming`](skills/brainstorming/SKILL.md) | Workflow | New feature / unclear requirements; produce a design/spec first. |
 | [`dev-browser`](skills/dev-browser/SKILL.md) | Automation | Browser/web automation: navigate pages, click/fill forms, take screenshots, scrape data, or test authenticated flows. |
+| [`ui-ux-pro-max-skill` (external bookmark)](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) | Reference (External) | UI/UX prompts/workflows reference; bookmark only (not included locally in this repo). |
 | [`systematic-debugging`](skills/systematic-debugging/SKILL.md) | Workflow | Bugs, flakes, or “unexpected behavior”; find root cause before fixing. |
 | [`writing-plans`](skills/writing-plans/SKILL.md) | Workflow | Approach is decided; turn it into an executable plan with steps + verification. |
 | [`executing-plans`](skills/executing-plans/SKILL.md) | Execution | Run a written plan in small batches with review checkpoints. |

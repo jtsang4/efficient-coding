@@ -22,6 +22,7 @@ Skills 是可复用的“能力/流程/方法论”，用来指导如何推进�
 | --- | --- | --- |
 | [`brainstorming`](skills/brainstorming/SKILL.md) | 流程 | 新功能/需求不清：先把目标、约束、方案与验收口径问清楚。 |
 | [`dev-browser`](skills/dev-browser/SKILL.md) | 自动化 | 浏览器/Web 自动化：页面导航、点击/填表、截图、抓取数据，或测试登录态流程。 |
+| [`ui-ux-pro-max-skill`（外部收藏）](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) | 参考（外部） | UI/UX 相关提示词与流程参考；仅作为收藏链接（本仓库未内置）。 |
 | [`systematic-debugging`](skills/systematic-debugging/SKILL.md) | 流程 | 修 bug / 测试不稳定 / 行为异常：先定位根因并稳定复现，再谈修复。 |
 | [`writing-plans`](skills/writing-plans/SKILL.md) | 流程 | 方案基本定了：把工作拆成可执行步骤与验证口径。 |
 | [`executing-plans`](skills/executing-plans/SKILL.md) | 推进 | 按计划分批执行，每批有检查点与复核。 |
