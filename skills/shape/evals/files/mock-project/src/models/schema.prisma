@@ -1,0 +1,33 @@
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  bookmarks Bookmark[]
+  highlights Highlight[]
+}
+
+model Bookmark {
+  id        String   @id @default(cuid())
+  url       String
+  title     String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  tags      Tag[]
+  createdAt DateTime @default(now())
+}
+
+model Highlight {
+  id        String   @id @default(cuid())
+  text      String
+  note      String?
+  source    String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model Tag {
+  id        String     @id @default(cuid())
+  name      String     @unique
+  bookmarks Bookmark[]
+}

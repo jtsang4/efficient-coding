@@ -23,6 +23,8 @@ Skills are reusable capability/workflow/methodology playbooks you can invoke to 
 | [`brainstorming`](skills/brainstorming/SKILL.md) | Workflow | New feature / unclear requirements; produce a design/spec first. |
 | [`dev-browser`](skills/dev-browser/SKILL.md) | Automation | Browser/web automation: navigate pages, click/fill forms, take screenshots, scrape data, or test authenticated flows. |
 | [`exa-web-search`](skills/exa-web-search/SKILL.md) | Research | Free AI web/code/company search via Exa MCP (no API key) when you need current information or code examples. |
+| [`see`](skills/see/SKILL.md) | Integration | Integrate with S.EE APIs for short URLs, text sharing, and file sharing. |
+| [`shape`](skills/shape/SKILL.md) | Product | Shape fuzzy ideas into clear product decisions and SPEC docs before coding. |
 | [`ui-ux-pro-max-skill` (external bookmark)](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) | Reference (External) | UI/UX prompts/workflows reference; bookmark only (not included locally in this repo). |
 | [`systematic-debugging`](skills/systematic-debugging/SKILL.md) | Workflow | Bugs, flakes, or “unexpected behavior”; find root cause before fixing. |
 | [`writing-plans`](skills/writing-plans/SKILL.md) | Workflow | Approach is decided; turn it into an executable plan with steps + verification. |

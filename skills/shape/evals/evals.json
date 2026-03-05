@@ -1,0 +1,61 @@
+{
+  "skill_name": "shape",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I want to build a personal finance tracker. Something simple — I just want to log my daily expenses and see where my money goes each month. Maybe some charts. I haven't really thought through the details yet, can you help me think through this?",
+      "expected_output": "The skill should enter INITIALIZE mode (no SPEC.md exists). It should ask 2-3 guided questions about the core problem, target user, and main scenarios. After the conversation, it should produce a SPEC.md with frontmatter, core problem, target users, core scenarios with acceptance criteria, key design decisions, scope boundaries, and pending decisions. It should also output a completeness summary.",
+      "files": [],
+      "expectations": [
+        "Creates a SPEC.md file with the standard frontmatter containing 'design-reference' status and warning",
+        "SPEC.md contains a 'Core Problem' section",
+        "SPEC.md contains a 'Target Users' section",
+        "SPEC.md contains at least 2 core scenarios with acceptance criteria",
+        "SPEC.md contains a 'Key Design Decisions' section with reasoning (because/why)",
+        "SPEC.md contains an 'Explicitly Out of Scope' section",
+        "Outputs a completeness check summary showing which areas are covered vs pending",
+        "Asks the user questions in a guided, progressive manner rather than dumping all questions at once"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I want to add a feature to export highlights as a weekly email digest. The user should be able to configure which day of the week they get the digest, and it should include their top 5 most recent highlights with source links.\n\nIMPORTANT CONTEXT: The current working directory contains the mock project files. The project root is the current directory. SPEC.md already exists at ./SPEC.md. The project code is in ./src/ and package.json is at ./package.json.",
+      "expected_output": "The skill should enter EVOLVE mode (SPEC.md exists + new feature described). First, it should do a local review of relevant SPEC sections against the actual code, detect that the tech stack has drifted (SPEC says Express+SQLite but code shows Next.js+Prisma), report this to the user, then proceed to shape the email digest feature. It should incrementally update the SPEC, not rewrite it entirely.",
+      "files": [
+        "evals/files/mock-project/SPEC.md",
+        "evals/files/mock-project/package.json",
+        "evals/files/mock-project/src/routes/api.ts",
+        "evals/files/mock-project/src/models/schema.prisma"
+      ],
+      "expectations": [
+        "Detects that SPEC.md exists and enters EVOLVE mode, not INITIALIZE mode",
+        "Performs a local review before evolving: reads relevant SPEC sections and scans code files",
+        "Detects tech stack drift: SPEC says Express+SQLite but code shows Next.js+Prisma+next-auth",
+        "Reports the drift to the user and proposes SPEC updates before proceeding",
+        "After drift resolution, asks targeted questions about the email digest feature",
+        "Updates SPEC incrementally rather than rewriting the entire file",
+        "The updated SPEC preserves the frontmatter warning header"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Can you review my current SPEC and see how it matches up with what I've actually built?\n\nIMPORTANT CONTEXT: The current working directory contains the mock project files. The project root is the current directory. SPEC.md already exists at ./SPEC.md. The project code is in ./src/ and package.json is at ./package.json.",
+      "expected_output": "The skill should enter REVIEW mode (SPEC.md exists + user said 'review'). It should read the full SPEC, scan the code, and produce a structured difference report organized into three categories: planned but not built, built but not documented, and changed. It should then ask the user how to handle each finding.",
+      "files": [
+        "evals/files/mock-project/SPEC.md",
+        "evals/files/mock-project/package.json",
+        "evals/files/mock-project/src/routes/api.ts",
+        "evals/files/mock-project/src/models/schema.prisma"
+      ],
+      "expectations": [
+        "Detects REVIEW mode from the user's 'review' request",
+        "Reads the full SPEC.md file",
+        "Scans code files: package.json, route definitions, schema/models",
+        "Identifies 'Changed' items: Express→Next.js, SQLite→Prisma, EJS→React, email/password→next-auth",
+        "Identifies 'Built but not documented': Kindle import endpoint, Tag model, Highlight notes field",
+        "Organizes findings into clear categories (planned-not-built, built-not-documented, changed)",
+        "Asks the user how to handle each finding rather than auto-updating"
+      ]
+    }
+  ]
+}
