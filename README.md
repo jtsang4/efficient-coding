@@ -62,6 +62,12 @@ This table lists the source repositories for skills installed/updated from exter
 
 </details>
 
+## Scripts
+
+| Script | Purpose | Usage |
+| --- | --- | --- |
+| [`install-autojump-rs.sh`](scripts/install-autojump-rs.sh) | One-click installer for `autojump-rs` on macOS/Linux with `bash`/`zsh`/`fish` integration and an uninstall mode. | `bash scripts/install-autojump-rs.sh` or `bash scripts/install-autojump-rs.sh --uninstall` |
+
 ## Config
 
 Recommended repo configuration:
