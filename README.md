@@ -62,6 +62,18 @@ This table lists the source repositories for skills installed/updated from exter
 
 </details>
 
+## Standards
+
+These are the default engineering conventions recommended in this repo. The table stays flat on purpose so future specs can be added as new rows without changing the structure.
+
+| Category | Applies to | Recommendation | Quick note | Reference |
+| --- | --- | --- | --- | --- |
+| Project layout | Go services/apps | [`golang-standards/project-layout`](https://github.com/golang-standards/project-layout) | Good default for larger Go codebases; common directories include `cmd`, `internal`, and `pkg`. Keep small projects simpler when the extra structure is unnecessary. | <https://github.com/golang-standards/project-layout> |
+| Project layout | Frontend applications | [Feature-Sliced Design (FSD)](https://fsd.how/docs/get-started/overview/) | Organize by layers and business slices (for example `app`, `pages`, `features`, `entities`, `shared`) so frontend code stays easier to scale and evolve. | <https://fsd.how/docs/get-started/overview/> |
+| Lint | Frontend / JS / TS | [Oxlint](https://oxc.rs/docs/guide/usage/linter.html) | High-performance linter for large repos and CI; start with correctness-focused defaults, then enable stricter rules incrementally. | <https://oxc.rs/docs/guide/usage/linter.html> |
+| i18n | React / frontend | [`react-i18next`](https://github.com/i18next/react-i18next) | Standard choice for React apps in the `i18next` ecosystem; supports hooks/components, namespaces, interpolation, and pluralization. | <https://github.com/i18next/react-i18next> |
+| i18n | Go services/apps | [`go-i18n`](https://github.com/nicksnyder/go-i18n) | Use bundles plus locale files to manage translations in Go; supports plural forms, template variables, and CLI-based extract/merge workflows. | <https://github.com/nicksnyder/go-i18n> |
+
 ## Scripts
 
 | Script | Purpose | Usage |
