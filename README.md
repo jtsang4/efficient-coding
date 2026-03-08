@@ -25,6 +25,7 @@ Skills are reusable capability/workflow/methodology playbooks you can invoke to 
 | [`exa-web-search`](skills/exa-web-search/SKILL.md) | Research | Free AI web/code/company search via Exa MCP (no API key) when you need current information or code examples. |
 | [`see`](skills/see/SKILL.md) | Integration | Integrate with S.EE APIs for short URLs, text sharing, and file sharing. |
 | [`shape`](skills/shape/SKILL.md) | Product | Shape fuzzy ideas into clear product decisions and SPEC docs before coding. |
+| [`impeccable` (external bookmark)](https://github.com/pbakaus/impeccable) | Reference (External) | Frontend design reference bundle (`frontend-design` skill + 17 commands + anti-patterns) for critique, polish, motion, color, and responsive refinement; bookmark only (not included locally in this repo). |
 | [`ui-ux-pro-max-skill` (external bookmark)](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) | Reference (External) | UI/UX prompts/workflows reference; bookmark only (not included locally in this repo). |
 | [`systematic-debugging`](skills/systematic-debugging/SKILL.md) | Workflow | Bugs, flakes, or “unexpected behavior”; find root cause before fixing. |
 | [`writing-plans`](skills/writing-plans/SKILL.md) | Workflow | Approach is decided; turn it into an executable plan with steps + verification. |
@@ -45,6 +46,7 @@ Skills are reusable capability/workflow/methodology playbooks you can invoke to 
 - For bugs: `systematic-debugging` → add a failing test → fix with `test-driven-development`.
 - For browser interaction tasks (navigate/click/fill/screenshot/scrape), use `dev-browser`.
 - For web/code/company research tasks, use `exa-web-search`.
+- For frontend visual design, UI critique/polish, motion, color, or responsive refinement, keep [`impeccable`](https://github.com/pbakaus/impeccable) handy as an external design reference.
 
 <details>
 <summary>Skill sources (optional)</summary>
