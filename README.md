@@ -21,6 +21,7 @@ Skills are reusable capability/workflow/methodology playbooks you can invoke to 
 | Skill | Category | When to use |
 | --- | --- | --- |
 | [`brainstorming`](skills/brainstorming/SKILL.md) | Workflow | New feature / unclear requirements; produce a design/spec first. |
+| [`harness`](skills/harness/SKILL.md) | Workflow | Transform any code project into one optimized for AI agent collaboration through harness engineering. Scans codebase, extracts engineering knowledge, and generates structured context documents. |
 | [`dev-browser`](skills/dev-browser/SKILL.md) | Automation | Browser/web automation: navigate pages, click/fill forms, take screenshots, scrape data, or test authenticated flows. |
 | [`exa-web-search`](skills/exa-web-search/SKILL.md) | Research | Free AI web/code/company search via Exa MCP (no API key) when you need current information or code examples. |
 | [`see`](skills/see/SKILL.md) | Integration | Integrate with S.EE APIs for short URLs, text sharing, and file sharing. |
