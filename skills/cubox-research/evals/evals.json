@@ -1,0 +1,24 @@
+{
+  "skill_name": "cubox-collection-research",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "去 Cubox 里充分查一下最近关于 agent harness、harness engineering、deep agents 和智能体评测的文章。不要只搜一个词，换着关键词去找，拉下最相关的 5 篇详情，再总结这些文章在说什么。",
+      "expected_output": "The run should use multiple keyword variations, query both quick and full-text search, fetch several relevant article details into temp directories, and produce a grounded summary that cites the exported Markdown files.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "帮我查 Cubox 里和 AI 漫剧政策变化、广电新规、版权新规、端原生收益相关的文章。尽量把同一主题下的不同表述都搜一遍，再提取最值得读的内容。",
+      "expected_output": "The run should broaden and narrow Chinese keyword variants, deduplicate results, fetch the strongest matching cards, and explain why those matches are relevant.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "我想知道自己在 Cubox 里存过哪些和台积电、TSMC、营收模型、equity research 有关的文章。请用中英文关键词都查一下，把相关卡片的详情转成 Markdown 后给我一个研究 memo。",
+      "expected_output": "The run should search with Chinese and English keywords, fetch article details, convert the Cubox HTML fragments to Markdown with local image downloads, and synthesize the findings into a memo.",
+      "files": []
+    }
+  ]
+}
+

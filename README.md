@@ -21,6 +21,7 @@ Skills are reusable capability/workflow/methodology playbooks you can invoke to 
 | Skill | Category | When to use |
 | --- | --- | --- |
 | [`brainstorming`](skills/brainstorming/SKILL.md) | Workflow | New feature / unclear requirements; produce a design/spec first. |
+| [`cubox-research`](skills/cubox-research/SKILL.md) | Research | Search a user's Cubox/CueBox collection deeply by topic, vary keywords intentionally, fetch strong article matches, and analyze exported Markdown locally. Requires Bun and a configured `.env`. |
 | [`harness`](skills/harness/SKILL.md) | Workflow | Transform any code project into one optimized for AI agent collaboration through harness engineering. Scans codebase, extracts engineering knowledge, and generates structured context documents. |
 | [`dev-browser`](skills/dev-browser/SKILL.md) | Automation | Browser/web automation: navigate pages, click/fill forms, take screenshots, scrape data, or test authenticated flows. |
 | [`exa-web-search`](skills/exa-web-search/SKILL.md) | Research | Free AI web/code/company search via Exa MCP (no API key) when you need current information or code examples. |
@@ -47,6 +48,7 @@ Skills are reusable capability/workflow/methodology playbooks you can invoke to 
 - If multiple skills apply, default to workflow first: `brainstorming`/`systematic-debugging` → `writing-plans` → execute (`executing-plans` | `subagent-driven-development`) → `test-driven-development` inside each task.
 - For bugs: `systematic-debugging` → add a failing test → fix with `test-driven-development`.
 - For browser interaction tasks (navigate/click/fill/screenshot/scrape), use `dev-browser`.
+- For questions that should be answered from the user's Cubox/CueBox library, use `cubox-research` first; it searches broadly, fetches the strongest article details, and stays read-only unless the user explicitly asks for a mutation.
 - For web/code/company research tasks, use `exa-web-search`.
 - For questions about what the user has already read, saved, or highlighted in Readwise/Reader, use `readwise-research` first; it treats the Readwise library as the source of truth and stays read-only until explicit confirmation.
 - For frontend visual design, UI critique/polish, motion, color, or responsive refinement, keep [`impeccable`](https://github.com/pbakaus/impeccable) handy as an external design reference.
