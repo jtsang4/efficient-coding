@@ -1,6 +1,6 @@
 ---
 name: cubox-research
-description: Search a user's Cubox or CueBox collection deeply by topic, theme, or question. Use this whenever the user asks to search Cubox/CueBox, saved articles, archived reads, or collected pages for a subject, wants multiple keyword variations tried, wants full-text search across Cubox, or needs article details exported from Cubox HTML into local Markdown with downloaded images for later analysis.
+description: Search a user's Cubox collection deeply by topic, theme, or question. Use this whenever the user asks to search Cubox, saved articles, archived reads, or collected pages for a subject, wants multiple keyword variations tried, wants full-text search across Cubox, or needs article details exported from Cubox HTML into local Markdown with downloaded images for later analysis.
 compatibility: Requires Bun, network access, and a configured `.env` file in this skill directory.
 ---
 
