@@ -24,6 +24,7 @@ Skills are reusable capability/workflow/methodology playbooks you can invoke to 
 | [`harness`](skills/harness/SKILL.md) | Workflow | Transform any code project into one optimized for AI agent collaboration through harness engineering. Scans codebase, extracts engineering knowledge, and generates structured context documents. |
 | [`dev-browser`](skills/dev-browser/SKILL.md) | Automation | Browser/web automation: navigate pages, click/fill forms, take screenshots, scrape data, or test authenticated flows. |
 | [`exa-web-search`](skills/exa-web-search/SKILL.md) | Research | Free AI web/code/company search via Exa MCP (no API key) when you need current information or code examples. |
+| [`readwise-research`](skills/readwise-research/SKILL.md) | Research | Build a topic memo from the user's Readwise/Reader documents and highlights, then suggest shortlist/tag/archive actions before any mutation. |
 | [`see`](skills/see/SKILL.md) | Integration | Integrate with S.EE APIs for short URLs, text sharing, and file sharing. |
 | [`shape`](skills/shape/SKILL.md) | Product | Shape fuzzy ideas into clear product decisions and SPEC docs before coding. |
 | [`impeccable` (external bookmark)](https://github.com/pbakaus/impeccable) | Reference (External) | Frontend design reference bundle (`frontend-design` skill + 17 commands + anti-patterns) for critique, polish, motion, color, and responsive refinement; bookmark only (not included locally in this repo). |
@@ -47,6 +48,7 @@ Skills are reusable capability/workflow/methodology playbooks you can invoke to 
 - For bugs: `systematic-debugging` → add a failing test → fix with `test-driven-development`.
 - For browser interaction tasks (navigate/click/fill/screenshot/scrape), use `dev-browser`.
 - For web/code/company research tasks, use `exa-web-search`.
+- For questions about what the user has already read, saved, or highlighted in Readwise/Reader, use `readwise-research` first; it treats the Readwise library as the source of truth and stays read-only until explicit confirmation.
 - For frontend visual design, UI critique/polish, motion, color, or responsive refinement, keep [`impeccable`](https://github.com/pbakaus/impeccable) handy as an external design reference.
 
 <details>

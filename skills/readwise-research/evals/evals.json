@@ -1,0 +1,44 @@
+{
+  "skill_name": "readwise-research",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "帮我整理我在 Readwise 里关于 AI agents evaluation 的阅读材料，做一份 memo，并建议哪些值得 shortlist。",
+      "expected_output": "Uses both document search and highlight search, produces a structured research memo, and suggests shortlist actions without mutating Reader.",
+      "files": [],
+      "expectations": [
+        "The transcript shows both document search and highlight search were used.",
+        "The output includes the sections 'Most Relevant Sources', 'Key Ideas and Evidence', 'Tensions / Disagreements / Gaps', and 'Suggested Reader Actions'.",
+        "The output names at least two concrete source titles or explicitly states that relevant results were weak.",
+        "The suggested actions mention shortlist candidates or explain why no shortlist candidates were found.",
+        "The transcript does not invoke document mutation commands."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "我最近读了很多关于个人知识管理和 evergreen notes 的东西，帮我提炼核心分歧，再给我一个标签整理建议。",
+      "expected_output": "Finds relevant materials, surfaces disagreements or gaps, and proposes topic-aligned tagging suggestions rather than generic cleanup.",
+      "files": [],
+      "expectations": [
+        "The transcript shows both document search and highlight search were used.",
+        "The output includes the sections 'Most Relevant Sources', 'Key Ideas and Evidence', 'Tensions / Disagreements / Gaps', and 'Suggested Reader Actions'.",
+        "The tensions or disagreements section is non-empty and grounded in the retrieved material.",
+        "The suggested actions mention tags or a tagging scheme aligned with the topic.",
+        "The transcript does not invoke document mutation commands."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "围绕 startup pricing 找我读过的文章和 highlights，做一页 briefing；不要直接改库，先给我建议。",
+      "expected_output": "Builds a one-page memo with source-backed ideas and suggested Reader actions while staying read-only until explicit confirmation.",
+      "files": [],
+      "expectations": [
+        "The transcript shows both document search and highlight search were used.",
+        "The output includes the sections 'Most Relevant Sources', 'Key Ideas and Evidence', 'Tensions / Disagreements / Gaps', and 'Suggested Reader Actions'.",
+        "The output names at least two concrete source titles or explicitly states that relevant results were weak.",
+        "The suggested actions are framed as recommendations rather than already-completed changes.",
+        "The transcript does not invoke document mutation commands."
+      ]
+    }
+  ]
+}
