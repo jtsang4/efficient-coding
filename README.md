@@ -21,6 +21,7 @@ Skills are reusable capability/workflow/methodology playbooks you can invoke to 
 | Skill | Category | When to use |
 | --- | --- | --- |
 | [`brainstorming`](skills/brainstorming/SKILL.md) | Workflow | New feature / unclear requirements; produce a design/spec first. |
+| [`codex-skill-creator`](skills/codex-skill-creator/SKILL.md) | Meta | Create, improve, benchmark, review, and package Codex skills, including paired eval runs and `eval-viewer/generate_review.py` review loops. |
 | [`cubox-research`](skills/cubox-research/SKILL.md) | Research | Search a user's Cubox collection deeply by topic, vary keywords intentionally, fetch strong article matches, and analyze exported Markdown locally. Requires Bun and a configured `.env`. |
 | [`harness`](skills/harness/SKILL.md) | Workflow | Transform any code project into one optimized for AI agent collaboration through harness engineering. Scans codebase, extracts engineering knowledge, and generates structured context documents. |
 | [`dev-browser`](skills/dev-browser/SKILL.md) | Automation | Browser/web automation: navigate pages, click/fill forms, take screenshots, scrape data, or test authenticated flows. |
@@ -40,11 +41,13 @@ Skills are reusable capability/workflow/methodology playbooks you can invoke to 
 ### Install
 
 - `bunx skills add http://github.com/jtsang4/efficient-coding --skill brainstorming`
+- `bunx skills add http://github.com/jtsang4/efficient-coding --skill codex-skill-creator`
 - Template: `bunx skills add http://github.com/jtsang4/efficient-coding --skill <skill>`
 
 ### Use
 
 - If you want a specific skill, say so explicitly (named skill wins).
+- For creating a new skill, revising an existing one, improving trigger descriptions, or running a human-review eval loop for skills, use `codex-skill-creator`.
 - If multiple skills apply, default to workflow first: `brainstorming`/`systematic-debugging` → `writing-plans` → execute (`executing-plans` | `subagent-driven-development`) → `test-driven-development` inside each task.
 - For bugs: `systematic-debugging` → add a failing test → fix with `test-driven-development`.
 - For browser interaction tasks (navigate/click/fill/screenshot/scrape), use `dev-browser`.
