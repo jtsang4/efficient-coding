@@ -3,17 +3,53 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "用本地 Memos 实例创建一条 PRIVATE memo，随后更新它的内容和 visibility，再列出最新的 memos，确认这条 memo 出现在返回结果里。",
-      "expected_output": "真实执行 CreateMemo、UpdateMemo、ListMemos，并保存每一步的 JSON 响应。",
+      "prompt": "创建一条带唯一标识的 PRIVATE memo，然后调用 recent --days 1 --include-content，确认返回结构包含 windowStart、windowEnd、count、memos，并且新 memo 出现在结果里。",
+      "expected_output": "真实执行 CreateMemo 与 recent，并保留创建响应和 recent JSON。",
       "files": [],
       "expectations": [
         "执行结果包含 CreateMemo 的返回体",
-        "执行结果包含 UpdateMemo 的返回体",
-        "执行结果包含 ListMemos 的返回体"
+        "执行结果包含 recent 命令的 JSON 返回",
+        "recent 返回体包含 windowStart、windowEnd、count、memos",
+        "recent 返回体包含刚创建的 memo"
       ]
     },
     {
       "id": 2,
+      "prompt": "创建一条带唯一标识的 PRIVATE memo，然后调用 latest --count 5 --include-content，确认输出结构是高层命令 JSON，而不是原始 ListMemos 返回体，并且新 memo 出现在结果里。",
+      "expected_output": "真实执行 CreateMemo 与 latest，并保留两步 JSON 响应。",
+      "files": [],
+      "expectations": [
+        "执行结果包含 CreateMemo 的返回体",
+        "执行结果包含 latest 命令的 JSON 返回",
+        "latest 返回体包含 command、countRequested、countReturned、memos",
+        "latest 返回体包含刚创建的 memo"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "创建一条包含唯一文本 token 和 #EvalTag 标签的 PRIVATE memo，然后调用 search --text <token> --days 7 --include-content，再调用 search --tag EvalTag --days 7，确认两次查询都能命中这条 memo。",
+      "expected_output": "真实执行 CreateMemo 与两次 search，并保留全部 JSON 响应。",
+      "files": [],
+      "expectations": [
+        "执行结果包含 CreateMemo 的返回体",
+        "执行结果包含 search --text 的 JSON 返回",
+        "执行结果包含 search --tag 的 JSON 返回",
+        "两次 search 都命中刚创建的 memo"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "调用 call MemoService_ListMemos --query pageSize=10 --query orderBy='display_time desc' --paginate，确认真实 API 可用，并保留分页包装结构而不是把 pages 扁平化。",
+      "expected_output": "真实执行分页 ListMemos，并保留原始分页 JSON。",
+      "files": [],
+      "expectations": [
+        "执行结果包含 operationId",
+        "执行结果包含 pageCount",
+        "执行结果包含 pages 数组"
+      ]
+    },
+    {
+      "id": 5,
       "prompt": "把一个本地文本文件编码成 attachment body，上传为 attachment，然后列出 attachments，并把 attachment 绑定到一条新 memo 上。",
       "expected_output": "真实执行 attachment-body、CreateAttachment、ListAttachments、CreateMemo、SetMemoAttachments，并保存 JSON 响应。",
       "files": [],
@@ -24,7 +60,7 @@
       ]
     },
     {
-      "id": 3,
+      "id": 6,
       "prompt": "在本地 Memos 实例上列出 activities；如果实例支持 activity API，再读取其中一条 activity 详情；如果实例版本不支持，保留原始错误响应用于说明兼容性。",
       "expected_output": "真实执行 ListActivities，并在可能时执行 GetActivity，保留真实服务响应。",
       "files": [],

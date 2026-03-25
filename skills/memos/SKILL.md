@@ -5,65 +5,73 @@ description: Use this skill whenever the user wants to work with the Memos REST 
 
 # Memos API Skill
 
-Use this skill for the Memos REST API areas bundled into this skill:
+This skill combines two layers:
+
+- low-level API access for exact Memos endpoints
+- task-oriented query helpers for common memo retrieval jobs
+
+Scope is intentionally limited to:
 
 - attachment operations
 - memo operations
 - activity operations
 
-This skill intentionally does not cover user management, auth, shortcuts, identity providers, or instance settings yet. If the request drifts into those areas, say the current skill scope is limited and avoid inventing unsupported commands.
+It does not cover user management, auth setup beyond the local `.env`, shortcuts, identity providers, or instance settings. If the request drifts there, say the skill scope is limited instead of guessing unsupported commands.
 
 ## What this skill provides
 
-- A Bun CLI at `scripts/memos.ts` for real API calls.
-- A compact API summary at `references/api-summary.md`.
-- A file-to-attachment helper so agents do not have to hand-roll base64 payloads.
+- A Bun CLI at `scripts/memos.ts`
+- Endpoint discovery and direct API calling via `ops`, `describe`, and `call`
+- Task-oriented memo helpers via `latest`, `recent`, and `search`
+- A file-to-attachment helper so agents do not have to hand-roll base64 payloads
+- A compact operation catalog at `references/api-summary.md`
+- Query recipes and time-window guidance at `references/query-recipes.md`
 
 ## Setup
 
 1. Work from the skill directory.
-2. Copy `.env.example` to `.env` if `.env` does not exist.
-3. Fill in:
+2. Ensure `.env` contains:
    - `MEMOS_BASE_URL`
    - `MEMOS_ACCESS_TOKEN`
-4. Verify configuration:
+3. Verify config:
 
 ```bash
 bun run scripts/memos.ts config
 ```
 
-`MEMOS_BASE_URL` may be either the instance root such as `http://localhost:5230` or the API base such as `http://localhost:5230/api/v1`. The script normalizes both.
+`MEMOS_BASE_URL` may be either the instance root such as `http://localhost:5230` or the API base such as `http://localhost:5230/api/v1`. The CLI normalizes both.
 
-## Quick command map
+## Choose the right path
 
-List supported operations:
+Use the high-level commands first when the user asked for a retrieval task, not a specific endpoint.
 
-```bash
-bun run scripts/memos.ts ops
-```
-
-Inspect one operation:
+- Latest memo or latest N memos:
 
 ```bash
-bun run scripts/memos.ts describe MemoService_ListMemos
+bun run scripts/memos.ts latest --count 5
 ```
 
-Call one documented operation:
+- Recent memos inside a time window:
 
 ```bash
-bun run scripts/memos.ts call MemoService_ListMemos \
-  --query pageSize=10 \
-  --query orderBy='display_time desc'
+bun run scripts/memos.ts recent --days 7 --window rolling --include-content
 ```
 
-Create a memo:
+- Search by text or tag:
 
 ```bash
-bun run scripts/memos.ts call MemoService_CreateMemo \
-  --body '{"state":"NORMAL","content":"Hello from the API","visibility":"PRIVATE"}'
+bun run scripts/memos.ts search --text agent --tag Thought --days 30
 ```
 
-Update a memo:
+Use `call` when the user explicitly needs one documented endpoint or a write operation.
+
+- Inspect the exact endpoint first:
+
+```bash
+bun run scripts/memos.ts describe MemoService_UpdateMemo
+```
+
+- Then call it directly:
 
 ```bash
 bun run scripts/memos.ts call MemoService_UpdateMemo \
@@ -72,60 +80,59 @@ bun run scripts/memos.ts call MemoService_UpdateMemo \
   --body '{"content":"Updated content","visibility":"PROTECTED"}'
 ```
 
-Create an attachment payload from a local file:
+## Known quirks
 
-```bash
-bun run scripts/memos.ts attachment-body \
-  --file /tmp/demo.txt \
-  --memo memos/YOUR_MEMO_ID \
-  --output /tmp/attachment-body.json
-```
-
-Then create the attachment:
-
-```bash
-bun run scripts/memos.ts call AttachmentService_CreateAttachment \
-  --body @/tmp/attachment-body.json
-```
-
-List pages until exhaustion:
-
-```bash
-bun run scripts/memos.ts call MemoService_ListMemos \
-  --query pageSize=50 \
-  --paginate
-```
+- `call --paginate` returns `{ operationId, pageCount, pages: [...] }`, not a top-level `{ memos: [...] }`. Flatten `pages[*].memos` before post-processing.
+- Memo time checks should use `displayTime` first, then fall back to `createTime`.
+- For time-range queries, prefer `orderBy='display_time desc'` plus local filtering. Do not assume the server-side `filter` field supports stable time semantics across versions.
+- The task-oriented commands default `state=NORMAL` so archived or deleted content does not silently leak into user-facing summaries.
+- `search --tag` matches the memo `tags` array exactly. It is not a full-text hashtag parser over `content`.
 
 ## Recommended workflow
 
-### 1. Discover the exact operation first
+### 1. Retrieval tasks
 
-When the user asks for a Memos task but does not name the endpoint:
+When the user asks questions like:
+
+- 最近一周有哪些备忘录
+- 最新的一条 memo 是什么
+- 带 `Thought` tag 的 memo 有哪些
+- 搜一下包含某个关键词的 memo
+
+Use:
+
+1. `latest`, `recent`, or `search`
+2. Return the important fields from the JSON result
+3. Summarize content for the user when they asked for meaning, not raw JSON
+
+Read `references/query-recipes.md` when you need concrete examples or want to choose between `rolling` and `calendar` time windows.
+
+### 2. Exact API work
+
+When the user asks to create, update, delete, attach files, add reactions, or inspect one exact endpoint:
 
 1. Run `bun run scripts/memos.ts ops`
 2. If needed, run `bun run scripts/memos.ts describe <operationId>`
-3. Choose the narrowest documented operation instead of sending a generic raw request
+3. Use `bun run scripts/memos.ts call <operationId> ...`
 
-This keeps the agent aligned with the documented API surface instead of drifting into guessed endpoints.
+This keeps the agent aligned with the documented API surface instead of inventing raw requests.
 
-### 2. Follow the resource naming rules carefully
+### 3. Resource naming rules
 
-Path placeholders such as `{memo}` or `{attachment}` usually expect the bare ID, not the full resource name.
-
-Examples:
+Path placeholders usually expect bare ids:
 
 - `--path memo=0195c...`
 - `--path attachment=abc123`
 - `--path activity=evt_123`
 
-Request bodies often do expect full resource names:
+Request bodies often expect full resource names:
 
 - `memos/0195c...`
 - `attachments/abc123`
 
 If you accidentally pass a full resource name into a path flag, the CLI strips the leading path and keeps the last segment.
 
-### 3. Treat `updateMask` as part of the update, not an optional hint
+### 4. Update requests
 
 Patch endpoints such as:
 
@@ -134,75 +141,39 @@ Patch endpoints such as:
 
 need `--query updateMask=...`.
 
-Without it, many updates fail or update less than you expect.
+Without it, many updates fail or update less than expected.
 
-### 4. Prefer JSON files for complex bodies
+### 5. Complex bodies and binary uploads
 
-Inline JSON is fine for tiny payloads. For memo relations, attachment sets, or larger memo bodies, prefer a temporary file and pass it with `--body @/path/to/file.json`.
-
-### 5. Use the helper for binary attachment uploads
-
-The attachment API expects `Attachment.content` as base64 bytes in JSON. Do not manually encode files unless there is a compelling reason. Use:
+Prefer `@file.json` for larger bodies:
 
 ```bash
-bun run scripts/memos.ts attachment-body --file /path/to/file
+bun run scripts/memos.ts call MemoService_CreateMemo --body @/tmp/memo.json
 ```
 
-## Service-specific guidance
+Use the helper for attachments instead of hand-building base64:
 
-### Attachment Service
+```bash
+bun run scripts/memos.ts attachment-body --file /path/to/file --output /tmp/body.json
+```
 
-Use for:
+Then create the attachment:
 
-- create/get/list/update/delete attachments
-- filtering attachments by filename, mime type, create time, or memo
-- attaching uploaded files to memo flows
-
-Common operations:
-
-- `AttachmentService_ListAttachments`
-- `AttachmentService_CreateAttachment`
-- `AttachmentService_UpdateAttachment`
-- `AttachmentService_DeleteAttachment`
-
-### Memo Service
-
-Use for:
-
-- create/get/list/update/delete memos
-- comments
-- reactions
-- relations
-- memo attachment bindings
-
-Common operations:
-
-- `MemoService_ListMemos`
-- `MemoService_CreateMemo`
-- `MemoService_UpdateMemo`
-- `MemoService_CreateMemoComment`
-- `MemoService_UpsertMemoReaction`
-- `MemoService_SetMemoAttachments`
-- `MemoService_SetMemoRelations`
-
-### Activity Service
-
-Use for:
-
-- listing recent activities
-- fetching one activity by id
-
-Some self-hosted server versions may expose activity endpoints later than memo and attachment endpoints. If these endpoints return `404`, say the deployed server version likely does not expose the activity API yet.
+```bash
+bun run scripts/memos.ts call AttachmentService_CreateAttachment --body @/tmp/body.json
+```
 
 ## Read next when needed
 
-- Read `references/api-summary.md` when you need a compact operation catalog, payload hints, filter examples, or update-mask reminders.
+- Read `references/query-recipes.md` for recent/latest/search workflows, time-window semantics, and memo post-processing examples.
+- Read `references/api-summary.md` for the compact endpoint catalog, body hints, and pagination details.
 
 ## Output expectations
 
 When using this skill for execution:
 
 - call the real API instead of only describing it
+- prefer `latest`, `recent`, or `search` for retrieval tasks instead of hand-writing pagination logic each time
 - return the important response fields to the user
 - if you create or update resources, include the resource name or id in your answer
 - if the API returns an error, surface the status and body plainly instead of hiding it

@@ -13,6 +13,20 @@ This reference covers only the APIs documented under:
 
 The CLI reads `.env` from the skill root.
 
+## Which command to use
+
+Use the task-oriented commands when the user asked for a retrieval job:
+
+- `latest`: latest 1 or latest N memos
+- `recent`: memos in the last N days
+- `search`: text/tag lookup, optionally inside a time window
+
+Use `call` when you need:
+
+- a write operation
+- an exact documented endpoint
+- a payload shape that the high-level helpers do not cover
+
 ## Core conventions
 
 ### Path ids vs resource names
@@ -42,7 +56,39 @@ Examples:
 
 ### Pagination
 
-List operations may return `nextPageToken`. Use `--paginate` when the user wants the full result set.
+Single-page list calls usually return:
+
+```json
+{
+  "memos": [],
+  "nextPageToken": "..."
+}
+```
+
+`call --paginate` wraps the raw pages instead of flattening them:
+
+```json
+{
+  "operationId": "MemoService_ListMemos",
+  "pageCount": 2,
+  "pages": [
+    { "memos": [], "nextPageToken": "..." },
+    { "memos": [] }
+  ]
+}
+```
+
+If you use `--paginate`, flatten `pages[*].memos` yourself before summarizing or filtering.
+
+### Time-range queries
+
+For memo retrieval by time:
+
+- order by `display_time desc`
+- prefer local filtering over server-side `filter`
+- use `displayTime` first, then `createTime`
+
+Server versions may differ in exact CEL filter support, so do not rely on server-side time filters unless you already know the instance behavior.
 
 ## Supported operations
 
@@ -190,7 +236,11 @@ This skill treats memo filtering as CEL-style filtering over memo properties and
 - `visibility == "PUBLIC"`
 - `"project-x" in tags`
 
-Server versions may differ in exact supported fields. If a filter fails, return the error instead of pretending the filter worked.
+Keep the compatibility warning in mind:
+
+- server versions may differ in exact supported fields
+- if a filter fails, return the real error instead of pretending the filter worked
+- do not treat CEL filters as the default time-window strategy
 
 ## Notes on local validation
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 
-import { readFileSync, existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { basename, extname, join, resolve } from "node:path";
 import { OPERATIONS, OPERATIONS_BY_ID, type Operation } from "./operations";
 
@@ -11,15 +11,54 @@ type ParsedArgs = {
   flags: ArgMap;
 };
 
+type Config = {
+  baseUrl: string;
+  accessToken: string;
+  envPath: string;
+};
+
+type MemoRecord = {
+  name?: string;
+  state?: string;
+  createTime?: string;
+  updateTime?: string;
+  displayTime?: string;
+  content?: string;
+  visibility?: string;
+  tags?: unknown;
+  pinned?: boolean;
+  snippet?: string;
+};
+
+type MemoQueryOptions = {
+  state: string;
+  pageSize: number;
+  onPage: (page: MemoRecord[], meta: { pageIndex: number; nextPageToken?: string }) => "continue" | "stop" | Promise<"continue" | "stop">;
+};
+
+type TimeWindow = {
+  days: number;
+  window: "rolling" | "calendar";
+  timezone: string;
+  start: Date;
+  end: Date;
+};
+
 const SKILL_ROOT = resolve(import.meta.dir, "..");
 const ENV_PATH = join(SKILL_ROOT, ".env");
+const DEFAULT_PAGE_SIZE = 100;
+const DEFAULT_TIMEZONE = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+const MEMO_LIST_OPERATION = OPERATIONS_BY_ID.get("MemoService_ListMemos");
 
 function usage(): string {
   return [
     "Usage:",
     "  bun run scripts/memos.ts ops [--service memoservice] [--search memo] [--json]",
     "  bun run scripts/memos.ts describe <operationId> [--json]",
-    "  bun run scripts/memos.ts call <operationId> [--path key=value] [--query key=value] [--body JSON|@file|@-] [--paginate] [--output file]",
+    "  bun run scripts/memos.ts call <operationId> [--path key=value] [--query key=value] [--body JSON|@file|@-] [--paginate] [--dry-run] [--output file]",
+    "  bun run scripts/memos.ts latest [--count 10] [--state NORMAL] [--include-content] [--dry-run] [--output file]",
+    "  bun run scripts/memos.ts recent --days 7 [--window rolling|calendar] [--tz Asia/Shanghai] [--state NORMAL] [--include-content] [--dry-run] [--output file]",
+    "  bun run scripts/memos.ts search [--text keyword] [--tag Thought] [--days 30] [--window rolling|calendar] [--tz Asia/Shanghai] [--limit 50] [--state NORMAL] [--include-content] [--dry-run] [--output file]",
     "  bun run scripts/memos.ts attachment-body --file /path/to/file [--memo memos/123] [--name attachments/custom] [--mime text/plain] [--output /tmp/body.json]",
     "  bun run scripts/memos.ts config",
   ].join("\n");
@@ -123,7 +162,7 @@ function normalizeBaseUrl(raw: string | undefined): string {
   return `${trimmed}/api/v1`;
 }
 
-function loadConfig(): { baseUrl: string; accessToken: string; envPath: string } {
+function loadConfig(): Config {
   const localEnv = parseEnvFile(ENV_PATH);
   const baseUrl = normalizeBaseUrl(localEnv.MEMOS_BASE_URL ?? process.env.MEMOS_BASE_URL);
   const accessToken = (localEnv.MEMOS_ACCESS_TOKEN ?? process.env.MEMOS_ACCESS_TOKEN ?? "").trim();
@@ -285,6 +324,314 @@ function printPayload(payload: unknown): void {
   }
 
   console.log(JSON.stringify(payload, null, 2));
+}
+
+function parseIntegerFlag(
+  args: ParsedArgs,
+  name: string,
+  options: { defaultValue?: number; min?: number } = {},
+): number | undefined {
+  const raw = getFlag(args, name);
+  if (raw === undefined) {
+    return options.defaultValue;
+  }
+
+  if (!/^-?\d+$/.test(raw)) {
+    fail(`--${name} must be an integer. Received: ${raw}`);
+  }
+
+  const value = Number.parseInt(raw, 10);
+  if (!Number.isSafeInteger(value)) {
+    fail(`--${name} must be a safe integer. Received: ${raw}`);
+  }
+
+  if (options.min !== undefined && value < options.min) {
+    fail(`--${name} must be >= ${options.min}. Received: ${raw}`);
+  }
+
+  return value;
+}
+
+function parseStringFlag(args: ParsedArgs, name: string, defaultValue?: string): string | undefined {
+  const raw = getFlag(args, name);
+  if (raw === undefined) {
+    return defaultValue;
+  }
+
+  const value = raw.trim();
+  if (!value) {
+    fail(`--${name} must be non-empty.`);
+  }
+
+  return value;
+}
+
+function parseEnumFlag<T extends string>(args: ParsedArgs, name: string, allowed: readonly T[], defaultValue: T): T {
+  const raw = getFlag(args, name);
+  if (raw === undefined) {
+    return defaultValue;
+  }
+
+  if (allowed.includes(raw as T)) {
+    return raw as T;
+  }
+
+  fail(`--${name} must be one of: ${allowed.join(", ")}. Received: ${raw}`);
+}
+
+function parseTimezoneFlag(args: ParsedArgs): string {
+  const timeZone = parseStringFlag(args, "tz", DEFAULT_TIMEZONE) ?? DEFAULT_TIMEZONE;
+
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone }).format(new Date());
+    return timeZone;
+  } catch {
+    fail(`--tz must be a valid IANA timezone such as Asia/Shanghai or America/Los_Angeles. Received: ${timeZone}`);
+  }
+}
+
+function getTimeZoneParts(date: Date, timeZone: string): Record<string, number> {
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hour12: false,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+
+  const map: Record<string, number> = {};
+  for (const part of formatter.formatToParts(date)) {
+    if (part.type === "literal") {
+      continue;
+    }
+
+    map[part.type] = Number.parseInt(part.value, 10);
+  }
+
+  return map;
+}
+
+function getTimeZoneOffsetMs(date: Date, timeZone: string): number {
+  const parts = getTimeZoneParts(date, timeZone);
+  const utcFromLocalView = Date.UTC(
+    parts.year,
+    (parts.month ?? 1) - 1,
+    parts.day ?? 1,
+    parts.hour ?? 0,
+    parts.minute ?? 0,
+    parts.second ?? 0,
+  );
+  return utcFromLocalView - date.getTime();
+}
+
+function getLocalDateParts(date: Date, timeZone: string): { year: number; month: number; day: number } {
+  const parts = getTimeZoneParts(date, timeZone);
+  return {
+    year: parts.year,
+    month: parts.month,
+    day: parts.day,
+  };
+}
+
+function getTimeZoneMidnightUtc(dateParts: { year: number; month: number; day: number }, timeZone: string): number {
+  const baseUtc = Date.UTC(dateParts.year, dateParts.month - 1, dateParts.day, 0, 0, 0);
+  let candidate = baseUtc;
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const offset = getTimeZoneOffsetMs(new Date(candidate), timeZone);
+    const adjusted = baseUtc - offset;
+    if (adjusted === candidate) {
+      break;
+    }
+    candidate = adjusted;
+  }
+
+  return candidate;
+}
+
+function buildTimeWindow(args: ParsedArgs, now: Date): TimeWindow | undefined {
+  const days = parseIntegerFlag(args, "days", { min: 1 });
+  if (days === undefined) {
+    return undefined;
+  }
+
+  const window = parseEnumFlag(args, "window", ["rolling", "calendar"] as const, "rolling");
+  const timezone = parseTimezoneFlag(args);
+  const end = new Date(now);
+  let start: Date;
+
+  if (window === "rolling") {
+    start = new Date(end.getTime() - days * 24 * 60 * 60 * 1000);
+  } else {
+    const localToday = getLocalDateParts(now, timezone);
+    const targetDate = new Date(Date.UTC(localToday.year, localToday.month - 1, localToday.day));
+    targetDate.setUTCDate(targetDate.getUTCDate() - days);
+    start = new Date(
+      getTimeZoneMidnightUtc(
+        {
+          year: targetDate.getUTCFullYear(),
+          month: targetDate.getUTCMonth() + 1,
+          day: targetDate.getUTCDate(),
+        },
+        timezone,
+      ),
+    );
+  }
+
+  return { days, window, timezone, start, end };
+}
+
+function getMemoTimestamp(memo: MemoRecord): string | undefined {
+  return memo.displayTime ?? memo.createTime;
+}
+
+function getMemoTimeMs(memo: MemoRecord): number | undefined {
+  const raw = getMemoTimestamp(memo);
+  if (!raw) {
+    return undefined;
+  }
+
+  const ms = Date.parse(raw);
+  return Number.isNaN(ms) ? undefined : ms;
+}
+
+function normalizeWhitespace(value: string): string {
+  return value.replace(/\s+/g, " ").trim();
+}
+
+function formatTimeInZone(dateLike: string | undefined, timeZone: string): string | null {
+  if (!dateLike) {
+    return null;
+  }
+
+  const date = new Date(dateLike);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return date.toLocaleString("sv-SE", {
+    timeZone,
+    hour12: false,
+  });
+}
+
+function normalizeTags(tags: unknown): string[] {
+  if (!Array.isArray(tags)) {
+    return [];
+  }
+
+  return tags.filter((item): item is string => typeof item === "string");
+}
+
+function projectMemo(memo: MemoRecord, options: { timeZone: string; includeContent: boolean }) {
+  const timestamp = getMemoTimestamp(memo);
+  const normalizedContent = typeof memo.content === "string" ? memo.content : "";
+  const fallbackSnippet = typeof memo.snippet === "string" ? memo.snippet : "";
+  const snippetSource = normalizedContent || fallbackSnippet;
+
+  const projected: Record<string, unknown> = {
+    name: memo.name ?? null,
+    state: memo.state ?? null,
+    createTime: memo.createTime ?? null,
+    updateTime: memo.updateTime ?? null,
+    displayTime: memo.displayTime ?? null,
+    displayTimeLocal: formatTimeInZone(timestamp, options.timeZone),
+    visibility: memo.visibility ?? null,
+    tags: normalizeTags(memo.tags),
+    pinned: memo.pinned ?? false,
+    snippet: normalizeWhitespace(snippetSource).slice(0, 140),
+  };
+
+  if (options.includeContent) {
+    projected.content = normalizedContent;
+  }
+
+  return projected;
+}
+
+function getOldestMemoTimeMs(page: MemoRecord[]): number | undefined {
+  for (let index = page.length - 1; index >= 0; index -= 1) {
+    const timeMs = getMemoTimeMs(page[index] as MemoRecord);
+    if (timeMs !== undefined) {
+      return timeMs;
+    }
+  }
+
+  return undefined;
+}
+
+function matchesSearchFilters(memo: MemoRecord, texts: string[], tags: string[]): boolean {
+  const content = typeof memo.content === "string" ? memo.content.toLowerCase() : "";
+  const memoTags = new Set(normalizeTags(memo.tags));
+
+  const textMatch =
+    texts.length === 0 ||
+    texts.some((text) => content.includes(text.toLowerCase()));
+
+  const tagMatch =
+    tags.length === 0 ||
+    tags.some((tag) => memoTags.has(tag));
+
+  return textMatch && tagMatch;
+}
+
+function requireMemoListOperation(): Operation {
+  if (!MEMO_LIST_OPERATION) {
+    fail("MemoService_ListMemos is missing from operations.ts.");
+  }
+
+  return MEMO_LIST_OPERATION;
+}
+
+function parseMemoPage(payload: unknown): { memos: MemoRecord[]; nextPageToken?: string } {
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    return { memos: [] };
+  }
+
+  const record = payload as Record<string, unknown>;
+  const memos = Array.isArray(record.memos) ? (record.memos as MemoRecord[]) : [];
+  const nextPageToken = typeof record.nextPageToken === "string" && record.nextPageToken.length > 0 ? record.nextPageToken : undefined;
+  return { memos, nextPageToken };
+}
+
+async function scanMemos(config: Config, options: MemoQueryOptions): Promise<void> {
+  const operation = requireMemoListOperation();
+  let nextPageToken: string | undefined;
+
+  for (let pageIndex = 0; pageIndex < 1000; pageIndex += 1) {
+    const queryParams: Record<string, string> = {
+      orderBy: "display_time desc",
+      pageSize: String(options.pageSize),
+    };
+
+    if (options.state) {
+      queryParams.state = options.state;
+    }
+
+    if (nextPageToken) {
+      queryParams.pageToken = nextPageToken;
+    }
+
+    const payload = await requestJson(config, operation, {}, queryParams, undefined);
+    const page = parseMemoPage(payload);
+    const action = await options.onPage(page.memos, {
+      pageIndex,
+      nextPageToken: page.nextPageToken,
+    });
+
+    if (action === "stop") {
+      return;
+    }
+
+    if (!page.nextPageToken) {
+      return;
+    }
+
+    nextPageToken = page.nextPageToken;
+  }
 }
 
 async function commandConfig(): Promise<void> {
@@ -449,6 +796,226 @@ async function commandCall(operationId: string, args: ParsedArgs): Promise<void>
   printPayload(payload);
 }
 
+async function commandLatest(args: ParsedArgs): Promise<void> {
+  const count = parseIntegerFlag(args, "count", { defaultValue: 10, min: 1 }) ?? 10;
+  const state = parseStringFlag(args, "state", "NORMAL") ?? "NORMAL";
+  const includeContent = hasFlag(args, "include-content");
+  const outputPath = getFlag(args, "output");
+  const timeZone = parseTimezoneFlag(args);
+  const pageSize = Math.min(Math.max(count, 10), DEFAULT_PAGE_SIZE);
+
+  if (hasFlag(args, "dry-run")) {
+    const payload = {
+      command: "latest",
+      countRequested: count,
+      state,
+      includeContent,
+      timezone: timeZone,
+      strategy: {
+        orderBy: "display_time desc",
+        pageSize,
+        localFiltering: false,
+      },
+    };
+    await maybeWriteOutput(outputPath, payload);
+    printPayload(payload);
+    return;
+  }
+
+  const config = loadConfig();
+  const memos: Record<string, unknown>[] = [];
+
+  await scanMemos(config, {
+    state,
+    pageSize,
+    onPage: (page) => {
+      for (const memo of page) {
+        memos.push(projectMemo(memo, { timeZone, includeContent }));
+        if (memos.length >= count) {
+          return "stop";
+        }
+      }
+      return "continue";
+    },
+  });
+
+  const payload = {
+    command: "latest",
+    countRequested: count,
+    countReturned: memos.length,
+    memos,
+  };
+
+  await maybeWriteOutput(outputPath, payload);
+  printPayload(payload);
+}
+
+async function commandRecent(args: ParsedArgs): Promise<void> {
+  const now = new Date();
+  const timeWindow = buildTimeWindow(args, now);
+  if (!timeWindow) {
+    fail("recent requires --days N");
+  }
+
+  const state = parseStringFlag(args, "state", "NORMAL") ?? "NORMAL";
+  const includeContent = hasFlag(args, "include-content");
+  const outputPath = getFlag(args, "output");
+
+  if (hasFlag(args, "dry-run")) {
+    const payload = {
+      command: "recent",
+      days: timeWindow.days,
+      window: timeWindow.window,
+      timezone: timeWindow.timezone,
+      windowStart: timeWindow.start.toISOString(),
+      windowEnd: timeWindow.end.toISOString(),
+      state,
+      includeContent,
+      strategy: {
+        orderBy: "display_time desc",
+        pageSize: DEFAULT_PAGE_SIZE,
+        localFiltering: true,
+      },
+    };
+    await maybeWriteOutput(outputPath, payload);
+    printPayload(payload);
+    return;
+  }
+
+  const threshold = timeWindow.start.getTime();
+  const config = loadConfig();
+  const memos: Record<string, unknown>[] = [];
+
+  await scanMemos(config, {
+    state,
+    pageSize: DEFAULT_PAGE_SIZE,
+    onPage: (page) => {
+      for (const memo of page) {
+        const timeMs = getMemoTimeMs(memo);
+        if (timeMs !== undefined && timeMs >= threshold) {
+          memos.push(projectMemo(memo, { timeZone: timeWindow.timezone, includeContent }));
+        }
+      }
+
+      const oldestTimeMs = getOldestMemoTimeMs(page);
+      if (oldestTimeMs !== undefined && oldestTimeMs < threshold) {
+        return "stop";
+      }
+
+      return "continue";
+    },
+  });
+
+  const payload = {
+    command: "recent",
+    days: timeWindow.days,
+    window: timeWindow.window,
+    timezone: timeWindow.timezone,
+    windowStart: timeWindow.start.toISOString(),
+    windowEnd: timeWindow.end.toISOString(),
+    count: memos.length,
+    memos,
+  };
+
+  await maybeWriteOutput(outputPath, payload);
+  printPayload(payload);
+}
+
+async function commandSearch(args: ParsedArgs): Promise<void> {
+  const texts = getAllFlags(args, "text")
+    .map((value) => value.trim())
+    .filter(Boolean);
+  const tags = getAllFlags(args, "tag")
+    .map((value) => value.trim())
+    .filter(Boolean);
+
+  if (texts.length === 0 && tags.length === 0) {
+    fail("search requires at least one --text or --tag filter.");
+  }
+
+  const now = new Date();
+  const timeWindow = buildTimeWindow(args, now);
+  const state = parseStringFlag(args, "state", "NORMAL") ?? "NORMAL";
+  const includeContent = hasFlag(args, "include-content");
+  const outputPath = getFlag(args, "output");
+  const timeZone = timeWindow?.timezone ?? parseTimezoneFlag(args);
+  const limit = parseIntegerFlag(args, "limit", { defaultValue: 50, min: 1 }) ?? 50;
+  const threshold = timeWindow?.start.getTime();
+
+  if (hasFlag(args, "dry-run")) {
+    const payload = {
+      command: "search",
+      timezone: timeZone,
+      filters: {
+        text: texts,
+        tags,
+        days: timeWindow?.days ?? null,
+        window: timeWindow?.window ?? null,
+        state,
+        limit,
+      },
+      strategy: {
+        orderBy: "display_time desc",
+        pageSize: DEFAULT_PAGE_SIZE,
+        localFiltering: true,
+      },
+    };
+    await maybeWriteOutput(outputPath, payload);
+    printPayload(payload);
+    return;
+  }
+
+  const config = loadConfig();
+  const memos: Record<string, unknown>[] = [];
+
+  await scanMemos(config, {
+    state,
+    pageSize: DEFAULT_PAGE_SIZE,
+    onPage: (page) => {
+      for (const memo of page) {
+        const timeMs = getMemoTimeMs(memo);
+        if (threshold !== undefined && (timeMs === undefined || timeMs < threshold)) {
+          continue;
+        }
+
+        if (!matchesSearchFilters(memo, texts, tags)) {
+          continue;
+        }
+
+        memos.push(projectMemo(memo, { timeZone, includeContent }));
+        if (memos.length >= limit) {
+          return "stop";
+        }
+      }
+
+      const oldestTimeMs = getOldestMemoTimeMs(page);
+      if (threshold !== undefined && oldestTimeMs !== undefined && oldestTimeMs < threshold) {
+        return "stop";
+      }
+
+      return "continue";
+    },
+  });
+
+  const payload = {
+    command: "search",
+    timezone: timeZone,
+    filters: {
+      text: texts,
+      tags,
+      days: timeWindow?.days ?? null,
+      window: timeWindow?.window ?? null,
+      state,
+      limit,
+    },
+    count: memos.length,
+    memos,
+  };
+
+  await maybeWriteOutput(outputPath, payload);
+  printPayload(payload);
+}
+
 function inferMimeType(filePath: string): string {
   const bunType = Bun.file(filePath).type;
   if (bunType) {
@@ -528,6 +1095,15 @@ async function main(): Promise<void> {
         await commandCall(operationId, args);
         return;
       }
+      case "latest":
+        await commandLatest(args);
+        return;
+      case "recent":
+        await commandRecent(args);
+        return;
+      case "search":
+        await commandSearch(args);
+        return;
       case "attachment-body":
         await commandAttachmentBody(args);
         return;
