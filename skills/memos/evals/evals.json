@@ -1,0 +1,37 @@
+{
+  "skill_name": "memos",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "用本地 Memos 实例创建一条 PRIVATE memo，随后更新它的内容和 visibility，再列出最新的 memos，确认这条 memo 出现在返回结果里。",
+      "expected_output": "真实执行 CreateMemo、UpdateMemo、ListMemos，并保存每一步的 JSON 响应。",
+      "files": [],
+      "expectations": [
+        "执行结果包含 CreateMemo 的返回体",
+        "执行结果包含 UpdateMemo 的返回体",
+        "执行结果包含 ListMemos 的返回体"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "把一个本地文本文件编码成 attachment body，上传为 attachment，然后列出 attachments，并把 attachment 绑定到一条新 memo 上。",
+      "expected_output": "真实执行 attachment-body、CreateAttachment、ListAttachments、CreateMemo、SetMemoAttachments，并保存 JSON 响应。",
+      "files": [],
+      "expectations": [
+        "执行结果包含 CreateAttachment 的返回体",
+        "执行结果包含 SetMemoAttachments 的返回体或空成功响应",
+        "执行结果包含 ListAttachments 的返回体"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "在本地 Memos 实例上列出 activities；如果实例支持 activity API，再读取其中一条 activity 详情；如果实例版本不支持，保留原始错误响应用于说明兼容性。",
+      "expected_output": "真实执行 ListActivities，并在可能时执行 GetActivity，保留真实服务响应。",
+      "files": [],
+      "expectations": [
+        "执行结果包含 ListActivities 的真实响应或真实错误",
+        "如果返回了 activity id，则结果包含 GetActivity 的响应"
+      ]
+    }
+  ]
+}
