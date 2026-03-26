@@ -24,7 +24,7 @@ export type Operation = {
 
 const memoBodyExample = {
   state: "NORMAL",
-  content: "Hello from Memos",
+  content: "#memos\n\nHello from Memos",
   visibility: "PRIVATE",
 };
 
@@ -138,7 +138,7 @@ export const OPERATIONS: Operation[] = [
     ],
     bodySchema: {
       name: "Memo",
-      description: "Memo with required state, content, and visibility.",
+      description: "Memo with required state, content, and visibility. Put hashtags directly into content when you want Memos to extract tags.",
       example: memoBodyExample,
     },
   },

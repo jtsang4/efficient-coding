@@ -20,12 +20,24 @@ Use the task-oriented commands when the user asked for a retrieval job:
 - `latest`: latest 1 or latest N memos
 - `recent`: memos in the last N days
 - `search`: text/tag lookup, optionally inside a time window
+- `list-tags`: aggregate the existing hashtag vocabulary, counts, recency, and sample memo snippets before the agent decides whether to reuse a tag
 
 Use `call` when you need:
 
 - a write operation
 - an exact documented endpoint
 - a payload shape that the high-level helpers do not cover
+
+## Tag-aware creation workflow
+
+When the user wants to create a memo with tags:
+
+1. Run `list-tags` first to inspect existing tag names, counts, recency, and sample snippets.
+2. If the right tag is still ambiguous, run `search --tag <candidate>` to inspect prior memo context.
+3. Let the calling agent decide whether an existing tag already expresses the intended meaning.
+4. Encode the final choice as hashtags inside `content` when calling `MemoService_CreateMemo`.
+
+Do not encode tag-similarity heuristics in scripts. This is a semantic judgment for the calling agent.
 
 ## Core conventions
 
@@ -164,12 +176,28 @@ Common optional fields:
 - `attachments`
 - `relations`
 
+Tagging note:
+
+- `tags` is output-only in upstream Memos API definitions
+- the server extracts tags from hashtags embedded in `content`
+- when creating or updating a tagged memo, write the hashtags directly into `content` instead of inventing a writable `tags` field
+
 Minimal create body:
 
 ```json
 {
   "state": "NORMAL",
   "content": "Hello from Memos",
+  "visibility": "PRIVATE"
+}
+```
+
+Tagged create body:
+
+```json
+{
+  "state": "NORMAL",
+  "content": "#memos #project-x\n\nHello from Memos",
   "visibility": "PRIVATE"
 }
 ```

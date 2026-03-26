@@ -68,6 +68,29 @@
         "执行结果包含 ListActivities 的真实响应或真实错误",
         "如果返回了 activity id，则结果包含 GetActivity 的响应"
       ]
+    },
+    {
+      "id": 7,
+      "prompt": "先创建两条带不同 hashtag 的 PRIVATE memo（例如 #EvalTagAlpha 与 #EvalTagBeta），然后调用 list-tags --days 7 --sample-size 1，确认返回结构包含 distinctTagCount、returnedTagCount、tags，并且新标签出现在 tags 列表中。",
+      "expected_output": "真实执行两次 CreateMemo 与一次 list-tags，并保留创建响应和 list-tags JSON。",
+      "files": [],
+      "expectations": [
+        "执行结果包含至少两次 CreateMemo 的返回体",
+        "执行结果包含 list-tags 的 JSON 返回",
+        "list-tags 返回体包含 distinctTagCount、returnedTagCount、tags",
+        "tags 列表包含刚创建的 hashtag"
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "创建一条以多个 hashtag 开头的 PRIVATE memo，然后调用 search --tag 命中其中一个标签，确认标签来自 content 中的 hashtag，而不是请求体里单独的 tags 字段。",
+      "expected_output": "真实执行 CreateMemo 与 search --tag，并保留真实 JSON 响应，同时说明 memo 内容前缀使用了 hashtag。",
+      "files": [],
+      "expectations": [
+        "CreateMemo 请求体中的 content 含有 hashtag 前缀",
+        "执行结果包含 search --tag 的 JSON 返回",
+        "search 命中刚创建的 memo"
+      ]
     }
   ]
 }

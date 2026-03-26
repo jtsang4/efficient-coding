@@ -1,6 +1,6 @@
 ---
 name: memos
-description: Use this skill whenever the user wants to work with the Memos REST API for memos, attachments, or activities, including creating, reading, querying, updating, deleting memos, managing memo comments/reactions/relations/attachments, or listing and inspecting activities from a Memos instance.
+description: Use this skill whenever the user wants to work with the Memos REST API for memos, attachments, or activities, including creating, reading, querying, updating, deleting memos, managing memo comments/reactions/relations/attachments, listing and inspecting activities, or creating memos with hashtag-based tagging after checking existing tags from a Memos instance.
 ---
 
 # Memos API Skill
@@ -9,6 +9,7 @@ This skill combines two layers:
 
 - low-level API access for exact Memos endpoints
 - task-oriented query helpers for common memo retrieval jobs
+- tag inventory helpers so the calling agent can inspect existing hashtags before deciding whether to reuse them
 
 Scope is intentionally limited to:
 
@@ -23,6 +24,7 @@ It does not cover user management, auth setup beyond the local `.env`, shortcuts
 - A Bun CLI at `scripts/memos.ts`
 - Endpoint discovery and direct API calling via `ops`, `describe`, and `call`
 - Task-oriented memo helpers via `latest`, `recent`, and `search`
+- A `list-tags` helper that aggregates existing tags, counts, recency, and sample memo snippets
 - A file-to-attachment helper so agents do not have to hand-roll base64 payloads
 - A compact operation catalog at `references/api-summary.md`
 - Query recipes and time-window guidance at `references/query-recipes.md`
@@ -63,6 +65,12 @@ bun run scripts/memos.ts recent --days 7 --window rolling --include-content
 bun run scripts/memos.ts search --text agent --tag Thought --days 30
 ```
 
+- Inspect existing tags before deciding which hashtags to reuse in a new memo:
+
+```bash
+bun run scripts/memos.ts list-tags --limit 100 --sample-size 2
+```
+
 Use `call` when the user explicitly needs one documented endpoint or a write operation.
 
 - Inspect the exact endpoint first:
@@ -87,6 +95,7 @@ bun run scripts/memos.ts call MemoService_UpdateMemo \
 - For time-range queries, prefer `orderBy='display_time desc'` plus local filtering. Do not assume the server-side `filter` field supports stable time semantics across versions.
 - The task-oriented commands default `state=NORMAL` so archived or deleted content does not silently leak into user-facing summaries.
 - `search --tag` matches the memo `tags` array exactly. It is not a full-text hashtag parser over `content`.
+- `Memo.tags` is extracted by the server from hashtags in `content`. Treat it as output-only unless the deployed API docs explicitly say otherwise.
 
 ## Recommended workflow
 
@@ -107,7 +116,28 @@ Use:
 
 Read `references/query-recipes.md` when you need concrete examples or want to choose between `rolling` and `calendar` time windows.
 
-### 2. Exact API work
+### 2. Tag-aware memo creation
+
+When the user asks to create a memo with tags or hashtags:
+
+1. Run `bun run scripts/memos.ts list-tags ...` first to inspect the existing tag vocabulary.
+2. If one or more candidate tags might match, run `search --tag ...` on the likely choices to inspect prior memo context.
+3. Let the calling agent decide which existing tags to reuse. Do not hard-code similarity logic in scripts for this decision.
+4. Put the final tags directly into the memo `content` as hashtags, usually at the top, for example:
+
+```json
+{
+  "state": "NORMAL",
+  "visibility": "PRIVATE",
+  "content": "#memos #openclaw\n\nImplemented tag discovery before creating this memo."
+}
+```
+
+5. Call `MemoService_CreateMemo` with that content body.
+
+Prefer reusing an existing tag when it clearly expresses the same concept. If the meaning is uncertain, inspect old memo examples first instead of inventing normalization rules.
+
+### 3. Exact API work
 
 When the user asks to create, update, delete, attach files, add reactions, or inspect one exact endpoint:
 
@@ -117,7 +147,7 @@ When the user asks to create, update, delete, attach files, add reactions, or in
 
 This keeps the agent aligned with the documented API surface instead of inventing raw requests.
 
-### 3. Resource naming rules
+### 4. Resource naming rules
 
 Path placeholders usually expect bare ids:
 
@@ -132,7 +162,7 @@ Request bodies often expect full resource names:
 
 If you accidentally pass a full resource name into a path flag, the CLI strips the leading path and keeps the last segment.
 
-### 4. Update requests
+### 5. Update requests
 
 Patch endpoints such as:
 
@@ -143,7 +173,7 @@ need `--query updateMask=...`.
 
 Without it, many updates fail or update less than expected.
 
-### 5. Complex bodies and binary uploads
+### 6. Complex bodies and binary uploads
 
 Prefer `@file.json` for larger bodies:
 

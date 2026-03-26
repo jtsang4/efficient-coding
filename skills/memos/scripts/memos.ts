@@ -44,6 +44,21 @@ type TimeWindow = {
   end: Date;
 };
 
+type TagSample = {
+  name: string | null;
+  displayTime: string | null;
+  displayTimeLocal: string | null;
+  snippet: string;
+};
+
+type TagAccumulator = {
+  tag: string;
+  count: number;
+  lastSeenTime: string | null;
+  lastSeenTimeMs: number;
+  samples: TagSample[];
+};
+
 const SKILL_ROOT = resolve(import.meta.dir, "..");
 const ENV_PATH = join(SKILL_ROOT, ".env");
 const DEFAULT_PAGE_SIZE = 100;
@@ -59,6 +74,7 @@ function usage(): string {
     "  bun run scripts/memos.ts latest [--count 10] [--state NORMAL] [--include-content] [--dry-run] [--output file]",
     "  bun run scripts/memos.ts recent --days 7 [--window rolling|calendar] [--tz Asia/Shanghai] [--state NORMAL] [--include-content] [--dry-run] [--output file]",
     "  bun run scripts/memos.ts search [--text keyword] [--tag Thought] [--days 30] [--window rolling|calendar] [--tz Asia/Shanghai] [--limit 50] [--state NORMAL] [--include-content] [--dry-run] [--output file]",
+    "  bun run scripts/memos.ts list-tags [--days 30] [--window rolling|calendar] [--tz Asia/Shanghai] [--state NORMAL] [--limit 200] [--sample-size 2] [--dry-run] [--output file]",
     "  bun run scripts/memos.ts attachment-body --file /path/to/file [--memo memos/123] [--name attachments/custom] [--mime text/plain] [--output /tmp/body.json]",
     "  bun run scripts/memos.ts config",
   ].join("\n");
@@ -597,6 +613,43 @@ function parseMemoPage(payload: unknown): { memos: MemoRecord[]; nextPageToken?:
   return { memos, nextPageToken };
 }
 
+function memoFallsWithinWindow(memo: MemoRecord, threshold: number | undefined): boolean {
+  if (threshold === undefined) {
+    return true;
+  }
+
+  const timeMs = getMemoTimeMs(memo);
+  return timeMs !== undefined && timeMs >= threshold;
+}
+
+function buildTagSample(memo: MemoRecord, timeZone: string): TagSample {
+  const timestamp = getMemoTimestamp(memo);
+  const snippetSource = typeof memo.content === "string" && memo.content.trim().length > 0
+    ? memo.content
+    : typeof memo.snippet === "string"
+      ? memo.snippet
+      : "";
+
+  return {
+    name: memo.name ?? null,
+    displayTime: timestamp ?? null,
+    displayTimeLocal: formatTimeInZone(timestamp, timeZone),
+    snippet: normalizeWhitespace(snippetSource).slice(0, 140),
+  };
+}
+
+function compareTagAccumulators(left: TagAccumulator, right: TagAccumulator): number {
+  if (right.count !== left.count) {
+    return right.count - left.count;
+  }
+
+  if (right.lastSeenTimeMs !== left.lastSeenTimeMs) {
+    return right.lastSeenTimeMs - left.lastSeenTimeMs;
+  }
+
+  return left.tag.localeCompare(right.tag, undefined, { sensitivity: "base" });
+}
+
 async function scanMemos(config: Config, options: MemoQueryOptions): Promise<void> {
   const operation = requireMemoListOperation();
   let nextPageToken: string | undefined;
@@ -1016,6 +1069,127 @@ async function commandSearch(args: ParsedArgs): Promise<void> {
   printPayload(payload);
 }
 
+async function commandListTags(args: ParsedArgs): Promise<void> {
+  const now = new Date();
+  const timeWindow = buildTimeWindow(args, now);
+  const state = parseStringFlag(args, "state", "NORMAL") ?? "NORMAL";
+  const outputPath = getFlag(args, "output");
+  const timeZone = timeWindow?.timezone ?? parseTimezoneFlag(args);
+  const limit = parseIntegerFlag(args, "limit", { defaultValue: 200, min: 1 }) ?? 200;
+  const sampleSize = parseIntegerFlag(args, "sample-size", { defaultValue: 2, min: 0 }) ?? 2;
+  const threshold = timeWindow?.start.getTime();
+
+  if (hasFlag(args, "dry-run")) {
+    const payload = {
+      command: "list-tags",
+      timezone: timeZone,
+      filters: {
+        days: timeWindow?.days ?? null,
+        window: timeWindow?.window ?? null,
+        state,
+        limit,
+        sampleSize,
+      },
+      strategy: {
+        orderBy: "display_time desc",
+        pageSize: DEFAULT_PAGE_SIZE,
+        localFiltering: true,
+        note: "Use this command to inspect existing tag vocabulary before the agent decides whether to reuse or introduce hashtags in memo content.",
+      },
+    };
+    await maybeWriteOutput(outputPath, payload);
+    printPayload(payload);
+    return;
+  }
+
+  const config = loadConfig();
+  const tags = new Map<string, TagAccumulator>();
+  let scannedMemoCount = 0;
+
+  await scanMemos(config, {
+    state,
+    pageSize: DEFAULT_PAGE_SIZE,
+    onPage: (page) => {
+      for (const memo of page) {
+        if (!memoFallsWithinWindow(memo, threshold)) {
+          continue;
+        }
+
+        scannedMemoCount += 1;
+        const memoTags = normalizeTags(memo.tags);
+        if (memoTags.length === 0) {
+          continue;
+        }
+
+        const memoTimeMs = getMemoTimeMs(memo) ?? 0;
+        const memoTime = getMemoTimestamp(memo) ?? null;
+        const sample = sampleSize > 0 ? buildTagSample(memo, timeZone) : null;
+
+        for (const tag of memoTags) {
+          const existing = tags.get(tag);
+          if (!existing) {
+            tags.set(tag, {
+              tag,
+              count: 1,
+              lastSeenTime: memoTime,
+              lastSeenTimeMs: memoTimeMs,
+              samples: sample ? [sample] : [],
+            });
+            continue;
+          }
+
+          existing.count += 1;
+          if (memoTimeMs >= existing.lastSeenTimeMs) {
+            existing.lastSeenTimeMs = memoTimeMs;
+            existing.lastSeenTime = memoTime;
+          }
+
+          if (sample && existing.samples.length < sampleSize) {
+            existing.samples.push(sample);
+          }
+        }
+      }
+
+      const oldestTimeMs = getOldestMemoTimeMs(page);
+      if (threshold !== undefined && oldestTimeMs !== undefined && oldestTimeMs < threshold) {
+        return "stop";
+      }
+
+      return "continue";
+    },
+  });
+
+  const summarizedTags = Array.from(tags.values())
+    .sort(compareTagAccumulators)
+    .slice(0, limit)
+    .map((entry) => ({
+      tag: entry.tag,
+      memoCount: entry.count,
+      lastSeenTime: entry.lastSeenTime,
+      lastSeenTimeLocal: formatTimeInZone(entry.lastSeenTime ?? undefined, timeZone),
+      samples: entry.samples,
+    }));
+
+  const payload = {
+    command: "list-tags",
+    timezone: timeZone,
+    filters: {
+      days: timeWindow?.days ?? null,
+      window: timeWindow?.window ?? null,
+      state,
+      limit,
+      sampleSize,
+    },
+    scannedMemoCount,
+    distinctTagCount: tags.size,
+    returnedTagCount: summarizedTags.length,
+    tags: summarizedTags,
+  };
+
+  await maybeWriteOutput(outputPath, payload);
+  printPayload(payload);
+}
+
 function inferMimeType(filePath: string): string {
   const bunType = Bun.file(filePath).type;
   if (bunType) {
@@ -1103,6 +1277,9 @@ async function main(): Promise<void> {
         return;
       case "search":
         await commandSearch(args);
+        return;
+      case "list-tags":
+        await commandListTags(args);
         return;
       case "attachment-body":
         await commandAttachmentBody(args);

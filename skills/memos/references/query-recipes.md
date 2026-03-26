@@ -50,6 +50,37 @@ The CLI returns:
 
 That makes it easy to explain the exact time window back to the user.
 
+## List existing tags before creating a tagged memo
+
+Inspect the current tag vocabulary:
+
+```bash
+bun run scripts/memos.ts list-tags --limit 100 --sample-size 2
+```
+
+Inspect only recent tags in the last 30 days:
+
+```bash
+bun run scripts/memos.ts list-tags --days 30 --window rolling --limit 100 --sample-size 2
+```
+
+Recommended interpretation:
+
+- Use `list-tags` before creating a tagged memo.
+- Let the calling agent decide whether to reuse an existing tag after looking at counts and sample snippets.
+- If a candidate is still ambiguous, follow up with `search --tag <candidate>` to inspect full memo context.
+- Write the final chosen tags into memo `content` as hashtags. Do not assume the API accepts a writable `tags` field.
+
+Example tagged create body:
+
+```json
+{
+  "state": "NORMAL",
+  "visibility": "PRIVATE",
+  "content": "#memos #project-x\n\nSummarized today's implementation notes."
+}
+```
+
 ## Search by text or tag
 
 Search by text:
