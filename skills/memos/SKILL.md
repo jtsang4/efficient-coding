@@ -137,7 +137,17 @@ When the user asks to create a memo with tags or hashtags:
 
 Prefer reusing an existing tag when it clearly expresses the same concept. If the meaning is uncertain, inspect old memo examples first instead of inventing normalization rules.
 
-### 3. Exact API work
+### 3. Long content fallback
+
+When creating or updating a memo, if the content is too long for one memo:
+
+1. Keep the first chunk in the memo itself.
+2. Append the overflow to comments with `MemoService_CreateMemoComment`.
+3. If one comment is still too long, keep splitting the remaining overflow into multiple ordered comments until everything is stored.
+
+Use this as the default fallback instead of truncating content silently.
+
+### 4. Exact API work
 
 When the user asks to create, update, delete, attach files, add reactions, or inspect one exact endpoint:
 
@@ -147,7 +157,7 @@ When the user asks to create, update, delete, attach files, add reactions, or in
 
 This keeps the agent aligned with the documented API surface instead of inventing raw requests.
 
-### 4. Resource naming rules
+### 5. Resource naming rules
 
 Path placeholders usually expect bare ids:
 
@@ -162,7 +172,7 @@ Request bodies often expect full resource names:
 
 If you accidentally pass a full resource name into a path flag, the CLI strips the leading path and keeps the last segment.
 
-### 5. Update requests
+### 6. Update requests
 
 Patch endpoints such as:
 
@@ -173,7 +183,7 @@ need `--query updateMask=...`.
 
 Without it, many updates fail or update less than expected.
 
-### 6. Complex bodies and binary uploads
+### 7. Complex bodies and binary uploads
 
 Prefer `@file.json` for larger bodies:
 
