@@ -1,0 +1,4 @@
+interface:
+  display_name: "assess-source-project-fit"
+  short_description: "评估论文、文章、仓库或内部文档对现有项目的真实增量价值"
+  default_prompt: "Use $assess-source-project-fit to assess whether the provided material offers meaningful, evidence-backed improvements for the target project."
