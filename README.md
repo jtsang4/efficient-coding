@@ -38,6 +38,7 @@ Skills are reusable capability/workflow/methodology playbooks you can invoke to 
 | [`subagent-driven-development`](skills/subagent-driven-development/SKILL.md) | Execution | Run a plan in-session: one subagent per task + spec/quality review loops. |
 | [`test-driven-development`](skills/test-driven-development/SKILL.md) | Implementation | Any feature/bugfix/refactor: Red → Green → Refactor (no code without a failing test). |
 | [`worktree-manager`](skills/worktree-manager/SKILL.md) | Workflow | Worktree management via Worktrunk (`wt`): switch/create/list/merge/remove with safety guardrails. |
+| [`merge-and-rebase`](skills/merge-and-rebase/SKILL.md) | Workflow | Ship a finished feature branch: commit + push, open a PR/MR against trunk, merge it without squashing, then rebase the branch onto the updated trunk. |
 
 ### Install
 
@@ -52,6 +53,7 @@ Skills are reusable capability/workflow/methodology playbooks you can invoke to 
 - For creating a new skill, revising an existing one, improving trigger descriptions, or running a human-review eval loop for skills, use `codex-skill-creator`.
 - If multiple skills apply, default to workflow first: `brainstorming`/`systematic-debugging` → `writing-plans` → execute (`executing-plans` | `subagent-driven-development`) → `test-driven-development` inside each task.
 - For bugs: `systematic-debugging` → add a failing test → fix with `test-driven-development`.
+- When a feature branch is finished and needs to land on trunk, use `merge-and-rebase`: commit + push → PR/MR → non-squash merge → rebase the branch onto the updated trunk.
 - For browser interaction tasks (navigate/click/fill/screenshot/scrape), use `dev-browser`.
 - For questions that should be answered from the user's Cubox library, use `cubox-research` first; it searches broadly, fetches the strongest article details, and stays read-only unless the user explicitly asks for a mutation.
 - For Memos API tasks around memos, attachments, or activities, use `memos`; it provides a Bun CLI plus bundled API guidance and expects a local `.env` with `MEMOS_BASE_URL` and `MEMOS_ACCESS_TOKEN`.

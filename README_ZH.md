@@ -38,6 +38,7 @@ Skills 是可复用的“能力/流程/方法论”，用来指导如何推进�
 | [`subagent-driven-development`](skills/subagent-driven-development/SKILL.md) | 推进 | 在当前会话逐任务派发子代理，并做“spec 合规 → 代码质量”两阶段 review。 |
 | [`test-driven-development`](skills/test-driven-development/SKILL.md) | 实现 | 编码阶段：Red → Green → Refactor（没有失败测试不写生产代码）。 |
 | [`worktree-manager`](skills/worktree-manager/SKILL.md) | 流程 | 基于 Worktrunk（`wt`）的 worktree 管理：switch/create/list/merge/remove + 安全护栏。 |
+| [`merge-and-rebase`](skills/merge-and-rebase/SKILL.md) | 流程 | 特性分支收尾：提交并推送、向主干发起 PR/MR、以非 squash 方式合并，再把特性分支 rebase 到最新主干。 |
 
 ### 安装
 
@@ -52,6 +53,7 @@ Skills 是可复用的“能力/流程/方法论”，用来指导如何推进�
 - 如果你是在创建新 skill、修改已有 skill、优化 description 触发效果，或者给 skill 跑一轮可人工审阅的 eval，优先使用 `codex-skill-creator`。
 - 同时命中多个 skills：默认“流程优先”——先决定怎么做，再进入实现：`brainstorming`/`systematic-debugging` → `writing-plans` →（`executing-plans` 或 `subagent-driven-development`）→ 每个任务内部用 `test-driven-development`。
 - 修 bug：先 `systematic-debugging`，补上失败用例，再用 `test-driven-development` 做最小修复。
+- 特性分支改完要合回主干时用 `merge-and-rebase`：提交并推送 → 发起 PR/MR → 非 squash 合并 → 把分支 rebase 到最新主干。
 - 浏览器交互类任务（导航/点击/填表/截图/抓取）优先使用 `dev-browser`。
 - 只要问题应该从用户的 Cubox 收藏里找答案，优先使用 `cubox-research`；它会有意识地扩展关键词、抓取最相关文章详情，并在用户明确要求前保持只读。
 - 只要任务是在调 Memos 的 API，尤其是 memos / attachments / activities 相关操作，优先使用 `memos`；它自带 Bun CLI 和内置 API 摘要，并要求本地 `.env` 配好 `MEMOS_BASE_URL` 与 `MEMOS_ACCESS_TOKEN`。
