@@ -20,9 +20,11 @@ Skills are reusable capability/workflow/methodology playbooks you can invoke to 
 
 | Skill | Category | When to use |
 | --- | --- | --- |
+| [`assess-source-project-fit`](skills/assess-source-project-fit/SKILL.md) | Research | Judge whether a paper, article, repo, talk, or internal doc actually offers something your project lacks; maps each idea onto the current implementation and allows "nothing worth adopting" as a result. |
 | [`brainstorming`](skills/brainstorming/SKILL.md) | Workflow | New feature / unclear requirements; produce a design/spec first. |
 | [`codex-skill-creator`](skills/codex-skill-creator/SKILL.md) | Meta | Create, improve, benchmark, review, and package Codex skills, including paired eval runs and `eval-viewer/generate_review.py` review loops. |
 | [`cubox-research`](skills/cubox-research/SKILL.md) | Research | Search a user's Cubox collection deeply by topic, vary keywords intentionally, fetch strong article matches, and analyze exported Markdown locally. Requires Bun and a configured `.env`. |
+| [`i-diagram`](skills/i-diagram/SKILL.md) | Authoring | Draw any technical or conceptual diagram — architecture, flowchart, sequence, state machine, mind map, timeline — as a single self-contained SVG, with light and dark themes. |
 | [`harness`](skills/harness/SKILL.md) | Workflow | Transform any code project into one optimized for AI agent collaboration through harness engineering. Scans codebase, extracts engineering knowledge, and generates structured context documents. |
 | [`memos`](skills/memos/SKILL.md) | Integration | Work with the Memos REST API for memos, attachments, and activities: create/read/query/update/delete memos, manage comments/reactions/relations/attachments, and inspect activities. Requires Bun and a configured `.env`. |
 | [`dev-browser`](skills/dev-browser/SKILL.md) | Automation | Browser/web automation: navigate pages, click/fill forms, take screenshots, scrape data, or test authenticated flows. |

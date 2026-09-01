@@ -20,9 +20,11 @@ Skills 是可复用的“能力/流程/方法论”，用来指导如何推进�
 
 | Skill | 类型 | 适用场景 |
 | --- | --- | --- |
+| [`assess-source-project-fit`](skills/assess-source-project-fit/SKILL.md) | 研究 | 判断一篇论文、文章、仓库、分享或内部文档是否真能给现有项目带来价值：把每个想法对照当前实现逐条评估，允许得出"没有值得引入的东西"这一结论。 |
 | [`brainstorming`](skills/brainstorming/SKILL.md) | 流程 | 新功能/需求不清：先把目标、约束、方案与验收口径问清楚。 |
 | [`codex-skill-creator`](skills/codex-skill-creator/SKILL.md) | 元技能 | 创建、改进、评测、人工评审并打包 Codex skills，包含成对 eval 运行和 `eval-viewer/generate_review.py` 审阅流程。 |
 | [`cubox-research`](skills/cubox-research/SKILL.md) | 研究 | 以用户的 Cubox 收藏为事实来源做主题研究：主动扩展关键词、抓取最相关文章详情，并基于导出的 Markdown 做本地分析。需要 Bun 和已配置的 `.env`。 |
+| [`i-diagram`](skills/i-diagram/SKILL.md) | 制图 | 画各类技术图与概念图——架构图、流程图、时序图、状态机、思维导图、时间线——输出单个自包含 SVG，支持明暗两套主题。 |
 | [`harness`](skills/harness/SKILL.md) | 流程 | 通过 Harness Engineering 将任意代码项目转化为适配 AI Agent 协作的形态。扫描代码库、提取工程知识、生成结构化上下文文档。 |
 | [`memos`](skills/memos/SKILL.md) | 集成 | 对接 Memos REST API，处理 memos、attachments、activities：支持 memo 的增删改查，以及 comments、reactions、relations、attachments 等操作。需要 Bun 和已配置的 `.env`。 |
 | [`dev-browser`](skills/dev-browser/SKILL.md) | 自动化 | 浏览器/Web 自动化：页面导航、点击/填表、截图、抓取数据，或测试登录态流程。 |
