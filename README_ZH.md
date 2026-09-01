@@ -39,6 +39,7 @@ Skills 是可复用的“能力/流程/方法论”，用来指导如何推进�
 | [`test-driven-development`](skills/test-driven-development/SKILL.md) | 实现 | 编码阶段：Red → Green → Refactor（没有失败测试不写生产代码）。 |
 | [`worktree-manager`](skills/worktree-manager/SKILL.md) | 流程 | 基于 Worktrunk（`wt`）的 worktree 管理：switch/create/list/merge/remove + 安全护栏。 |
 | [`merge-and-rebase`](skills/merge-and-rebase/SKILL.md) | 流程 | 特性分支收尾：提交并推送、向主干发起 PR/MR、以非 squash 方式合并，再把特性分支 rebase 到最新主干。 |
+| [`prove-it`](skills/prove-it/SKILL.md) | 验证 | 思路或设计"听起来可行"但没有被证明：要求拿出可证伪的实证，而不是继续讲道理——拆出致命主张、动手前冻结通过/击杀标准、按代表性难度建项目或改造现有项目，最后由独立审计把关。 |
 
 ### 安装
 
@@ -54,6 +55,7 @@ Skills 是可复用的“能力/流程/方法论”，用来指导如何推进�
 - 同时命中多个 skills：默认“流程优先”——先决定怎么做，再进入实现：`brainstorming`/`systematic-debugging` → `writing-plans` →（`executing-plans` 或 `subagent-driven-development`）→ 每个任务内部用 `test-driven-development`。
 - 修 bug：先 `systematic-debugging`，补上失败用例，再用 `test-driven-development` 做最小修复。
 - 特性分支改完要合回主干时用 `merge-and-rebase`：提交并推送 → 发起 PR/MR → 非 squash 合并 → 把分支 rebase 到最新主干。
+- 当 agent 给出的思路/设计听起来可行，但你不确定它扛不扛得住真实复杂度时，用 `prove-it`：它会把提案拆成一条条主张、标出哪几条一旦为假整个思路就死、在动手前冻结通过与击杀标准，然后拿你能自己跑的证据去证明或推翻。"不可行"也是合法结论。
 - 浏览器交互类任务（导航/点击/填表/截图/抓取）优先使用 `dev-browser`。
 - 只要问题应该从用户的 Cubox 收藏里找答案，优先使用 `cubox-research`；它会有意识地扩展关键词、抓取最相关文章详情，并在用户明确要求前保持只读。
 - 只要任务是在调 Memos 的 API，尤其是 memos / attachments / activities 相关操作，优先使用 `memos`；它自带 Bun CLI 和内置 API 摘要，并要求本地 `.env` 配好 `MEMOS_BASE_URL` 与 `MEMOS_ACCESS_TOKEN`。

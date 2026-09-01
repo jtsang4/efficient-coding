@@ -39,6 +39,7 @@ Skills are reusable capability/workflow/methodology playbooks you can invoke to 
 | [`test-driven-development`](skills/test-driven-development/SKILL.md) | Implementation | Any feature/bugfix/refactor: Red → Green → Refactor (no code without a failing test). |
 | [`worktree-manager`](skills/worktree-manager/SKILL.md) | Workflow | Worktree management via Worktrunk (`wt`): switch/create/list/merge/remove with safety guardrails. |
 | [`merge-and-rebase`](skills/merge-and-rebase/SKILL.md) | Workflow | Ship a finished feature branch: commit + push, open a PR/MR against trunk, merge it without squashing, then rebase the branch onto the updated trunk. |
+| [`prove-it`](skills/prove-it/SKILL.md) | Validation | An idea or design sounds feasible but is unproven; demand a falsifiable demonstration instead of argument — killer claims, pre-registered pass/kill criteria, a build or retrofit at representative difficulty, and an independent audit. |
 
 ### Install
 
@@ -54,6 +55,7 @@ Skills are reusable capability/workflow/methodology playbooks you can invoke to 
 - If multiple skills apply, default to workflow first: `brainstorming`/`systematic-debugging` → `writing-plans` → execute (`executing-plans` | `subagent-driven-development`) → `test-driven-development` inside each task.
 - For bugs: `systematic-debugging` → add a failing test → fix with `test-driven-development`.
 - When a feature branch is finished and needs to land on trunk, use `merge-and-rebase`: commit + push → PR/MR → non-squash merge → rebase the branch onto the updated trunk.
+- When a proposed idea or design sounds plausible but you are not convinced it survives real complexity, use `prove-it`: it splits the proposal into claims, marks the ones that would kill it, freezes pass/kill criteria before building, then proves or refutes them with evidence you can run yourself. "Not viable" is a valid result.
 - For browser interaction tasks (navigate/click/fill/screenshot/scrape), use `dev-browser`.
 - For questions that should be answered from the user's Cubox library, use `cubox-research` first; it searches broadly, fetches the strongest article details, and stays read-only unless the user explicitly asks for a mutation.
 - For Memos API tasks around memos, attachments, or activities, use `memos`; it provides a Bun CLI plus bundled API guidance and expects a local `.env` with `MEMOS_BASE_URL` and `MEMOS_ACCESS_TOKEN`.
