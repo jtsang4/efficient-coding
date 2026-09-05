@@ -20,6 +20,7 @@ Skills are reusable capability/workflow/methodology playbooks you can invoke to 
 
 | Skill | Category | When to use |
 | --- | --- | --- |
+| [`use-remote-skill`](skills/use-remote-skill/SKILL.md) | Meta | Use remote skills in the current conversation from explicit sources or a global/project YAML catalog; manage declarations in natural language. Prefers `bunx skills use`, falls back to `npx` when Bun's runner is absent, and does not search marketplaces. |
 | [`assess-source-project-fit`](skills/assess-source-project-fit/SKILL.md) | Research | Judge whether a paper, article, repo, talk, or internal doc actually offers something your project lacks; maps each idea onto the current implementation and allows "nothing worth adopting" as a result. |
 | [`brainstorming`](skills/brainstorming/SKILL.md) | Workflow | New feature / unclear requirements; produce a design/spec first. |
 | [`codex-skill-creator`](skills/codex-skill-creator/SKILL.md) | Meta | Create, improve, benchmark, review, and package Codex skills, including paired eval runs and `eval-viewer/generate_review.py` review loops. |
@@ -45,6 +46,7 @@ Skills are reusable capability/workflow/methodology playbooks you can invoke to 
 
 ### Install
 
+- `bunx skills add https://github.com/jtsang4/efficient-coding --skill use-remote-skill -g`
 - `bunx skills add http://github.com/jtsang4/efficient-coding --skill brainstorming`
 - `bunx skills add http://github.com/jtsang4/efficient-coding --skill codex-skill-creator`
 - `bunx skills add http://github.com/jtsang4/efficient-coding --skill memos`
@@ -52,6 +54,7 @@ Skills are reusable capability/workflow/methodology playbooks you can invoke to 
 
 ### Use
 
+- For temporary remote skills, use `use-remote-skill`: provide a source and skill name, invoke a configured alias, or ask it to maintain `~/.config/use-remote-skill/config.yaml` / `<project-root>/.agents/remote-skills.yaml`. See the [catalog schema and optional automatic matching setup](skills/use-remote-skill/references/configuration.md). Example: “Use the plan-review skill from jtsang4/efficient-coding to review this plan.”
 - If you want a specific skill, say so explicitly (named skill wins).
 - For creating a new skill, revising an existing one, improving trigger descriptions, or running a human-review eval loop for skills, use `codex-skill-creator`.
 - If multiple skills apply, default to workflow first: `brainstorming`/`systematic-debugging` → `writing-plans` → execute (`executing-plans` | `subagent-driven-development`) → `test-driven-development` inside each task.

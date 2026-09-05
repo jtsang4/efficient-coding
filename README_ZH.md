@@ -20,6 +20,7 @@ Skills 是可复用的“能力/流程/方法论”，用来指导如何推进�
 
 | Skill | 类型 | 适用场景 |
 | --- | --- | --- |
+| [`use-remote-skill`](skills/use-remote-skill/SKILL.md) | 元技能 | 从明确指定的来源或全局/项目 YAML 配置中临时加载远程技能，在当前会话使用，并支持自然语言维护配置。优先 `bunx skills use`，缺少 `bunx` 时回退 `npx`，不搜索技能市场。 |
 | [`assess-source-project-fit`](skills/assess-source-project-fit/SKILL.md) | 研究 | 判断一篇论文、文章、仓库、分享或内部文档是否真能给现有项目带来价值：把每个想法对照当前实现逐条评估，允许得出"没有值得引入的东西"这一结论。 |
 | [`brainstorming`](skills/brainstorming/SKILL.md) | 流程 | 新功能/需求不清：先把目标、约束、方案与验收口径问清楚。 |
 | [`codex-skill-creator`](skills/codex-skill-creator/SKILL.md) | 元技能 | 创建、改进、评测、人工评审并打包 Codex skills，包含成对 eval 运行和 `eval-viewer/generate_review.py` 审阅流程。 |
@@ -45,6 +46,7 @@ Skills 是可复用的“能力/流程/方法论”，用来指导如何推进�
 
 ### 安装
 
+- `bunx skills add https://github.com/jtsang4/efficient-coding --skill use-remote-skill -g`
 - `bunx skills add http://github.com/jtsang4/efficient-coding --skill brainstorming`
 - `bunx skills add http://github.com/jtsang4/efficient-coding --skill codex-skill-creator`
 - `bunx skills add http://github.com/jtsang4/efficient-coding --skill memos`
@@ -52,6 +54,7 @@ Skills 是可复用的“能力/流程/方法论”，用来指导如何推进�
 
 ### 使用
 
+- 临时使用远程技能时，调用 `use-remote-skill`，提供来源和技能名、点名已配置的别名，或要求它维护 `~/.config/use-remote-skill/config.yaml` / `<项目根目录>/.agents/remote-skills.yaml`。参见[配置格式和可选的自动匹配设置](skills/use-remote-skill/references/configuration.md)。例如：“用 jtsang4/efficient-coding 仓库里的 plan-review 审查这个计划。”
 - 想强制触发某个 skill：在指令里直接点名（点名优先）。
 - 如果你是在创建新 skill、修改已有 skill、优化 description 触发效果，或者给 skill 跑一轮可人工审阅的 eval，优先使用 `codex-skill-creator`。
 - 同时命中多个 skills：默认“流程优先”——先决定怎么做，再进入实现：`brainstorming`/`systematic-debugging` → `writing-plans` →（`executing-plans` 或 `subagent-driven-development`）→ 每个任务内部用 `test-driven-development`。
