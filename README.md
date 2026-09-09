@@ -23,6 +23,7 @@ Skills are reusable capability/workflow/methodology playbooks you can invoke to 
 | [`use-remote-skill`](skills/use-remote-skill/SKILL.md) | Meta | Use remote skills in the current conversation from explicit sources or a global/project YAML catalog; manage declarations in natural language. Prefers `bunx skills use`, falls back to `npx` when Bun's runner is absent, and does not search marketplaces. |
 | [`assess-source-project-fit`](skills/assess-source-project-fit/SKILL.md) | Research | Judge whether a paper, article, repo, talk, or internal doc actually offers something your project lacks; maps each idea onto the current implementation and allows "nothing worth adopting" as a result. |
 | [`brainstorming`](skills/brainstorming/SKILL.md) | Workflow | New feature / unclear requirements; produce a design/spec first. |
+| [`problem-framing`](skills/problem-framing/SKILL.md) | Workflow | A solution keeps accumulating exceptions or discussion fails to converge; check the underlying requirement, name the suspected false problem, and test a simpler framing while preserving real constraints. |
 | [`codex-skill-creator`](skills/codex-skill-creator/SKILL.md) | Meta | Create, improve, benchmark, review, and package Codex skills, including paired eval runs and `eval-viewer/generate_review.py` review loops. |
 | [`cubox-research`](skills/cubox-research/SKILL.md) | Research | Search a user's Cubox collection deeply by topic, vary keywords intentionally, fetch strong article matches, and analyze exported Markdown locally. Requires Bun and a configured `.env`. |
 | [`i-diagram`](skills/i-diagram/SKILL.md) | Authoring | Draw any technical or conceptual diagram — architecture, flowchart, sequence, state machine, mind map, timeline — as a single self-contained SVG, with light and dark themes. |
@@ -56,6 +57,7 @@ Skills are reusable capability/workflow/methodology playbooks you can invoke to 
 
 - For temporary remote skills, use `use-remote-skill`: provide a source and skill name, invoke a configured alias, or ask it to maintain `~/.config/use-remote-skill/config.yaml` / `<project-root>/.agents/remote-skills.yaml`. See the [catalog schema and optional automatic matching setup](skills/use-remote-skill/references/configuration.md). Example: “Use the plan-review skill from jtsang4/efficient-coding to review this plan.”
 - If you want a specific skill, say so explicitly (named skill wins).
+- When complexity keeps growing or discussion gets stuck, invoke `$problem-framing` to check whether the problem is framed correctly, identify unsupported assumptions, and propose a simpler framing with a minimal validation step.
 - For creating a new skill, revising an existing one, improving trigger descriptions, or running a human-review eval loop for skills, use `codex-skill-creator`.
 - If multiple skills apply, default to workflow first: `brainstorming`/`systematic-debugging` → `writing-plans` → execute (`executing-plans` | `subagent-driven-development`) → `test-driven-development` inside each task.
 - For bugs: `systematic-debugging` → add a failing test → fix with `test-driven-development`.

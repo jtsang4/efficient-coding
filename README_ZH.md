@@ -23,6 +23,7 @@ Skills 是可复用的“能力/流程/方法论”，用来指导如何推进�
 | [`use-remote-skill`](skills/use-remote-skill/SKILL.md) | 元技能 | 从明确指定的来源或全局/项目 YAML 配置中临时加载远程技能，在当前会话使用，并支持自然语言维护配置。优先 `bunx skills use`，缺少 `bunx` 时回退 `npx`，不搜索技能市场。 |
 | [`assess-source-project-fit`](skills/assess-source-project-fit/SKILL.md) | 研究 | 判断一篇论文、文章、仓库、分享或内部文档是否真能给现有项目带来价值：把每个想法对照当前实现逐条评估，允许得出"没有值得引入的东西"这一结论。 |
 | [`brainstorming`](skills/brainstorming/SKILL.md) | 流程 | 新功能/需求不清：先把目标、约束、方案与验收口径问清楚。 |
+| [`problem-framing`](skills/problem-framing/SKILL.md) | 流程 | 方案不断增加特例或讨论反复不收敛：核实底层需求，明确指出疑似伪问题，在保留真实约束的前提下验证更简单的问题表述。 |
 | [`codex-skill-creator`](skills/codex-skill-creator/SKILL.md) | 元技能 | 创建、改进、评测、人工评审并打包 Codex skills，包含成对 eval 运行和 `eval-viewer/generate_review.py` 审阅流程。 |
 | [`cubox-research`](skills/cubox-research/SKILL.md) | 研究 | 以用户的 Cubox 收藏为事实来源做主题研究：主动扩展关键词、抓取最相关文章详情，并基于导出的 Markdown 做本地分析。需要 Bun 和已配置的 `.env`。 |
 | [`i-diagram`](skills/i-diagram/SKILL.md) | 制图 | 画各类技术图与概念图——架构图、流程图、时序图、状态机、思维导图、时间线——输出单个自包含 SVG，支持明暗两套主题。 |
@@ -56,6 +57,7 @@ Skills 是可复用的“能力/流程/方法论”，用来指导如何推进�
 
 - 临时使用远程技能时，调用 `use-remote-skill`，提供来源和技能名、点名已配置的别名，或要求它维护 `~/.config/use-remote-skill/config.yaml` / `<项目根目录>/.agents/remote-skills.yaml`。参见[配置格式和可选的自动匹配设置](skills/use-remote-skill/references/configuration.md)。例如：“用 jtsang4/efficient-coding 仓库里的 plan-review 审查这个计划。”
 - 想强制触发某个 skill：在指令里直接点名（点名优先）。
+- 复杂度持续增加或讨论卡住时，调用 `$problem-framing`，检查问题定义是否合理、哪些假设缺少依据，并提出更简单的问题表述和最小验证步骤。
 - 如果你是在创建新 skill、修改已有 skill、优化 description 触发效果，或者给 skill 跑一轮可人工审阅的 eval，优先使用 `codex-skill-creator`。
 - 同时命中多个 skills：默认“流程优先”——先决定怎么做，再进入实现：`brainstorming`/`systematic-debugging` → `writing-plans` →（`executing-plans` 或 `subagent-driven-development`）→ 每个任务内部用 `test-driven-development`。
 - 修 bug：先 `systematic-debugging`，补上失败用例，再用 `test-driven-development` 做最小修复。
