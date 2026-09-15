@@ -1,0 +1,14 @@
+{
+  "name": "paseo-relay-skill",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "test": "node --test scripts/*.test.mjs",
+    "read": "node scripts/read.mjs"
+  },
+  "dependencies": {
+    "@getpaseo/client": "0.8.0",
+    "@getpaseo/protocol": "0.8.0"
+  }
+}

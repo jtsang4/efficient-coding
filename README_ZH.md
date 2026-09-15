@@ -30,6 +30,7 @@ Skills 是可复用的“能力/流程/方法论”，用来指导如何推进�
 | [`i-diagram`](skills/i-diagram/SKILL.md) | 制图 | 画各类技术图与概念图——架构图、流程图、时序图、状态机、思维导图、时间线——输出单个自包含 SVG，支持明暗两套主题。 |
 | [`harness`](skills/harness/SKILL.md) | 流程 | 通过 Harness Engineering 将任意代码项目转化为适配 AI Agent 协作的形态。扫描代码库、提取工程知识、生成结构化上下文文档。 |
 | [`memos`](skills/memos/SKILL.md) | 集成 | 对接 Memos REST API，处理 memos、attachments、activities：支持 memo 的增删改查，以及 comments、reactions、relations、attachments 等操作。需要 Bun 和已配置的 `.env`。 |
+| [`paseo-relay`](skills/paseo-relay/SKILL.md) | 集成 | 通过已授权的 Relay 配对信息，用本地 Paseo CLI 连接其它 host，发现 workspace 与 agent、读取会话并执行用户要求的操作。可选 SDK 读取补充身份核验、profiles 和完整原始 timeline。 |
 | [`dev-browser`](skills/dev-browser/SKILL.md) | 自动化 | 浏览器/Web 自动化：页面导航、点击/填表、截图、抓取数据，或测试登录态流程。 |
 | [`exa-web-search`](skills/exa-web-search/SKILL.md) | 研究 | 通过 Exa MCP 免费做 Web/代码/公司信息检索（无需 API key），适合查最新信息与代码示例。 |
 | [`readwise-research`](skills/readwise-research/SKILL.md) | 研究 | 基于用户的 Readwise/Reader 文档与 highlights 生成主题 memo，并在任何写操作前先给出 shortlist/tag/archive 建议。 |
@@ -68,6 +69,7 @@ Skills 是可复用的“能力/流程/方法论”，用来指导如何推进�
 - 浏览器交互类任务（导航/点击/填表/截图/抓取）优先使用 `dev-browser`。
 - 只要问题应该从用户的 Cubox 收藏里找答案，优先使用 `cubox-research`；它会有意识地扩展关键词、抓取最相关文章详情，并在用户明确要求前保持只读。
 - 只要任务是在调 Memos 的 API，尤其是 memos / attachments / activities 相关操作，优先使用 `memos`；它自带 Bun CLI 和内置 API 摘要，并要求本地 `.env` 配好 `MEMOS_BASE_URL` 与 `MEMOS_ACCESS_TOKEN`。
+- 需要通过 Paseo 跨 host 操作时，使用 `paseo-relay`：取得或复用已授权的配对信息、核验目标 host，再执行原生 `paseo` 命令。默认只读探查，远端变更按用户明确授权执行。CLI 缺少的读取能力见[可选 SDK 读取与验证](skills/paseo-relay/references/sdk.md)。
 - Web/代码/公司信息检索类任务优先使用 `exa-web-search`。
 - 只要问题是在问“我在 Readwise/Reader 里已经读过、存过、标注过什么”，优先使用 `readwise-research`；它会把 Readwise 库当作事实来源，并在用户明确确认前保持只读。
 - 前端视觉设计 / UI 润色 / 设计审查 / 动效与响应式细化时，可把 [`impeccable`](https://github.com/pbakaus/impeccable) 作为外部设计参考一起使用。
