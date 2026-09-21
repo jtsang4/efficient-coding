@@ -14,10 +14,12 @@ async function main() {
     const inbox = await store.listInbox(run.run_id, { unacknowledgedOnly: true });
     stdout.write(`Agent Loop ${run.run_id}\n`);
     stdout.write(`状态：${run.status}\n`);
-    stdout.write(`Orchestrator：${run.orchestrator?.agent_name} (${run.orchestrator?.status})\n`);
+    const orchestratorLaunch = [run.orchestrator?.profile, run.orchestrator?.kind].filter(Boolean).join(" / ");
+    stdout.write(`Orchestrator：${run.orchestrator?.agent_name} (${run.orchestrator?.status})${orchestratorLaunch ? ` [${orchestratorLaunch}]` : ""}\n`);
     stdout.write(`子 Agent：${run.agents.length}\n`);
     for (const agent of run.agents) {
-      stdout.write(`- ${agent.agent_name} [${agent.role}] ${agent.status}\n`);
+      const launch = [agent.profile, agent.kind].filter(Boolean).join(" / ");
+      stdout.write(`- ${agent.agent_name} [${agent.role}] ${agent.status}${launch ? ` [${launch}]` : ""}\n`);
     }
     stdout.write(`未确认事件：${inbox.length}\n`);
   }

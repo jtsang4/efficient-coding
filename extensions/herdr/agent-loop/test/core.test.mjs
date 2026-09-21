@@ -63,7 +63,193 @@ test("startRun creates one orchestrator and prompts without waiting", async (t) 
   assert.equal(herdr.started.length, 1);
   assert.equal(herdr.prompts.length, 1);
   assert.match(herdr.prompts[0].prompt, /不要用 `agent prompt --wait`/);
+  assert.match(herdr.prompts[0].prompt, /--state-dir/);
+  assert.match(herdr.prompts[0].prompt, /--plugin-root/);
   assert.deepEqual(herdr.focused, [run.orchestrator.agent_name]);
+});
+
+test("orchestrator profile forwards Claude startup argv without persisting secrets", async (t) => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "agent-loop-orchestrator-profile-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const store = new StateStore(root);
+  const herdr = new FakeHerdr();
+  const profileConfig = {
+    defaults: {},
+    profiles: {
+      "claude-unrestricted": { kind: "claude", args: ["--dangerously-skip-permissions"] },
+    },
+  };
+
+  const run = await startRun({
+    workspaceId: "w1",
+    cwd: "/project",
+    task: "Coordinate",
+    orchestratorProfile: "claude-unrestricted",
+    profileConfig,
+    stateStore: store,
+    herdr,
+    pluginRoot: "/plugin",
+    pluginConfigDir: "/plugin-config",
+  });
+
+  assert.deepEqual(herdr.started[0], {
+    name: run.orchestrator.agent_name,
+    kind: "claude",
+    paneId: run.orchestrator.pane_id,
+    args: ["--dangerously-skip-permissions"],
+  });
+  assert.equal(run.orchestrator.profile, "claude-unrestricted");
+  assert.equal(run.orchestrator.arg_count, 1);
+  assert.equal(Object.hasOwn(run.orchestrator, "args"), false);
+  assert.equal(herdr.tabs[0].env.AGENT_LOOP_CONFIG_DIR, "/plugin-config");
+});
+
+test("role profiles select different child Agents and do not inherit orchestrator argv", async (t) => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "agent-loop-role-profiles-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const store = new StateStore(root);
+  const herdr = new FakeHerdr();
+  const profileConfig = {
+    defaults: { implementer: "claude-dev", verifier: "pi-verify" },
+    profiles: {
+      "claude-dev": { kind: "claude", args: ["--model", "dev model"] },
+      "pi-verify": { kind: "pi", args: ["--thinking", "high"] },
+    },
+  };
+  const run = await startRun({
+    workspaceId: "w1",
+    cwd: "/project",
+    task: "Build",
+    orchestratorKind: "claude",
+    orchestratorArgs: ["--dangerously-skip-permissions"],
+    profileConfig,
+    stateStore: store,
+    herdr,
+    pluginRoot: "/plugin",
+    focus: false,
+  });
+  const common = {
+    runId: run.run_id,
+    task: "Bounded work",
+    callerPaneId: run.orchestrator.pane_id,
+    profileConfig,
+    stateStore: store,
+    herdr,
+    pluginRoot: "/plugin",
+  };
+  await spawnChild({ ...common, role: "implementer" });
+  await spawnChild({ ...common, role: "verifier" });
+
+  assert.deepEqual(herdr.started.slice(1).map(({ kind, args }) => ({ kind, args })), [
+    { kind: "claude", args: ["--model", "dev model"] },
+    { kind: "pi", args: ["--thinking", "high"] },
+  ]);
+
+  const noDefaults = { defaults: {}, profiles: {} };
+  await spawnChild({ ...common, role: "implementer", profileConfig: noDefaults, task: "No profile" });
+  assert.deepEqual(herdr.started.at(-1).args, []);
+  assert.equal(herdr.started.at(-1).kind, "claude");
+});
+
+test("invalid profiles fail before creating runs or reserving child Agents", async (t) => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "agent-loop-invalid-profile-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const store = new StateStore(root);
+  const herdr = new FakeHerdr();
+  await assert.rejects(startRun({
+    workspaceId: "w1",
+    cwd: "/project",
+    task: "Build",
+    orchestratorProfile: "missing",
+    profileConfig: { defaults: {}, profiles: {} },
+    stateStore: store,
+    herdr,
+    pluginRoot: "/plugin",
+  }), /Unknown Agent profile/);
+  assert.deepEqual(await store.listRuns(), []);
+  assert.equal(herdr.tabs.length, 0);
+
+  const run = await startRun({
+    workspaceId: "w1",
+    cwd: "/project",
+    task: "Build",
+    stateStore: store,
+    herdr,
+    pluginRoot: "/plugin",
+    focus: false,
+  });
+  await assert.rejects(spawnChild({
+    runId: run.run_id,
+    role: "implementer",
+    task: "Work",
+    profile: "missing",
+    profileConfig: { defaults: {}, profiles: {} },
+    callerPaneId: run.orchestrator.pane_id,
+    stateStore: store,
+    herdr,
+    pluginRoot: "/plugin",
+  }), /Unknown Agent profile/);
+  assert.equal((await store.readRun(run.run_id)).agents.length, 0);
+});
+
+test("spawning from an old run migrates control paths before prompting the child", async (t) => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "agent-loop-old-child-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const store = new StateStore(root);
+  await store.createRun({
+    run_id: "old-child-run",
+    workspace_id: "w1",
+    session_key: "default",
+    cwd: "/project",
+    status: "active",
+    orchestrator_kind: "codex",
+    orchestrator: { agent_name: "orchestrator-old", role: "orchestrator", pane_id: "w1:p1" },
+    agents: [],
+  });
+  const herdr = new FakeHerdr();
+  await spawnChild({
+    runId: "old-child-run",
+    role: "implementer",
+    task: "Continue old run",
+    callerPaneId: "w1:p1",
+    stateStore: store,
+    herdr,
+    pluginRoot: "/plugin root",
+    pluginConfigDir: "/plugin config",
+  });
+
+  const run = await store.readRun("old-child-run");
+  assert.equal(run.state_root, root);
+  assert.equal(run.control_recovery_pending, true);
+  assert.match(herdr.prompts[0].prompt, /--state-dir/);
+  assert.equal(herdr.prompts[0].prompt.includes("'undefined'"), false);
+  assert.equal(herdr.tabs[0].env.AGENT_LOOP_CONFIG_DIR, "/plugin config");
+});
+
+test("an incompatible native argv failure marks the run failed", async (t) => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "agent-loop-argv-failure-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const store = new StateStore(root);
+  const herdr = new FakeHerdr();
+  herdr.startAgent = async (options) => {
+    herdr.started.push(options);
+    throw new Error("agent_not_ready");
+  };
+
+  await assert.rejects(startRun({
+    workspaceId: "w1",
+    cwd: "/project",
+    task: "Build",
+    orchestratorKind: "claude",
+    orchestratorArgs: ["--print"],
+    stateStore: store,
+    herdr,
+    pluginRoot: "/plugin",
+  }), /agent_not_ready/);
+  const [run] = await store.listRuns();
+  assert.equal(run.status, "failed");
+  assert.equal(run.orchestrator.arg_count, 1);
+  assert.equal(Object.hasOwn(run.orchestrator, "args"), false);
 });
 
 test("orchestrator can dynamically spawn multiple implementers and verifiers", async (t) => {
@@ -126,6 +312,48 @@ test("concurrent spawns reserve distinct child identities", async (t) => {
   const members = await Promise.all([spawnChild(common), spawnChild(common)]);
   assert.equal(new Set(members.map((member) => member.agent_name)).size, 2);
   assert.equal(new Set(herdr.tabs.slice(1).map((tab) => tab.env.AGENT_LOOP_AGENT_NAME)).size, 2);
+});
+
+test("concurrent spawns keep profile argv isolated", async (t) => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "agent-loop-profile-race-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const store = new StateStore(root);
+  const herdr = new FakeHerdr();
+  const profileConfig = {
+    defaults: {},
+    profiles: {
+      alpha: { kind: "claude", args: ["--model", "alpha"] },
+      beta: { kind: "pi", args: ["--model", "beta"] },
+    },
+  };
+  const run = await startRun({
+    workspaceId: "w1",
+    cwd: "/project",
+    task: "Build",
+    stateStore: store,
+    herdr,
+    pluginRoot: "/plugin",
+    focus: false,
+  });
+  const common = {
+    runId: run.run_id,
+    role: "implementer",
+    task: "Parallel task",
+    callerPaneId: run.orchestrator.pane_id,
+    profileConfig,
+    stateStore: store,
+    herdr,
+    pluginRoot: "/plugin",
+  };
+  await Promise.all([
+    spawnChild({ ...common, profile: "alpha" }),
+    spawnChild({ ...common, profile: "beta" }),
+  ]);
+  const childStarts = herdr.started.slice(1).map(({ kind, args }) => ({ kind, args }));
+  assert.deepEqual(childStarts.sort((a, b) => a.kind.localeCompare(b.kind)), [
+    { kind: "claude", args: ["--model", "alpha"] },
+    { kind: "pi", args: ["--model", "beta"] },
+  ]);
 });
 
 test("concurrent starts preserve one Orchestrator per workspace", async (t) => {
@@ -353,8 +581,11 @@ test("sending a new verifier task invalidates its previous PASS", async (t) => {
     callerPaneId: "w1:p1",
     stateStore: store,
     herdr,
+    pluginRoot: "/plugin",
   });
   const verifier = (await store.readRun("resend-run")).agents[0];
   assert.equal(verifier.latest_result_status, null);
   assert.equal(verifier.status, "prompted");
+  assert.match(herdr.prompts[0].prompt, /--state-dir/);
+  assert.match(herdr.prompts[0].prompt, /submit/);
 });

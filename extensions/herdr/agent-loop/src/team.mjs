@@ -13,25 +13,33 @@ import {
 } from "./core.mjs";
 import { flushOrchestratorInbox } from "./event-handler.mjs";
 import { HerdrClient } from "./herdr.mjs";
+import { loadProfileConfig, parseArgvJson, summarizeProfileConfig } from "./profiles.mjs";
 
 async function main() {
   const [command, ...rest] = process.argv.slice(2);
   const options = parseArgs(rest);
-  const stateStore = storeFromEnv();
+  const stateStore = options["state-dir"]
+    ? storeFromEnv({ AGENT_LOOP_STATE_DIR: options["state-dir"] })
+    : storeFromEnv();
   const runId = options.run || runIdFromEnv();
   const callerPaneId = process.env.HERDR_PANE_ID;
   const herdr = new HerdrClient();
 
   if (command === "spawn") {
     const task = await readTask(options);
+    const args = await readLaunchArgs(options);
     const member = await spawnChild({
       runId,
       role: options.role,
       task,
+      profile: options.profile,
       kind: options.kind,
+      args,
       callerPaneId,
       stateStore,
       herdr,
+      pluginRoot: options["plugin-root"],
+      pluginConfigDir: options["config-dir"],
     });
     return print(member);
   }
@@ -45,6 +53,8 @@ async function main() {
       callerPaneId,
       stateStore,
       herdr,
+      pluginRoot: options["plugin-root"],
+      pluginConfigDir: options["config-dir"],
     });
     return print(member);
   }
@@ -66,6 +76,14 @@ async function main() {
   if (command === "list") {
     assertOrchestrator(run, callerPaneId);
     return print({ orchestrator: run.orchestrator, agents: run.agents });
+  }
+
+  if (command === "profiles") {
+    assertOrchestrator(run, callerPaneId);
+    const config = await loadProfileConfig(
+      options["config-dir"] || process.env.AGENT_LOOP_CONFIG_DIR || process.env.HERDR_PLUGIN_CONFIG_DIR,
+    );
+    return print(summarizeProfileConfig(config));
   }
 
   if (command === "inbox") {
@@ -168,6 +186,25 @@ async function readResult(options, fileKey = "result-file", textKey = "result") 
   throw new Error(`Use --${fileKey} <path> or --${textKey} <text>`);
 }
 
+async function readLaunchArgs(options) {
+  const provided = ["args-file", "args-json", "arg"].some((key) => options[key] !== undefined);
+  if (!provided) return undefined;
+  const args = [];
+  if (options["args-file"]) {
+    args.push(...parseArgvJson(await readTaskFile(options["args-file"]), "--args-file"));
+  }
+  if (options["args-json"]) {
+    args.push(...parseArgvJson(options["args-json"], "--args-json"));
+  }
+  for (const value of asArray(options.arg)) {
+    if (value === true) {
+      throw new Error("Use --arg=<value> when the Agent argument begins with --");
+    }
+    args.push(String(value));
+  }
+  return args;
+}
+
 export function parseArgs(args) {
   const parsed = { _: [] };
   for (let index = 0; index < args.length; index += 1) {
@@ -176,10 +213,13 @@ export function parseArgs(args) {
       parsed._.push(value);
       continue;
     }
-    const key = value.slice(2);
+    const equalsAt = value.indexOf("=");
+    const key = equalsAt >= 0 ? value.slice(2, equalsAt) : value.slice(2);
     const next = args[index + 1];
-    const optionValue = !next || next.startsWith("--") ? true : next;
-    if (optionValue !== true) index += 1;
+    const optionValue = equalsAt >= 0
+      ? value.slice(equalsAt + 1)
+      : (!next || next.startsWith("--") ? true : next);
+    if (equalsAt < 0 && optionValue !== true) index += 1;
     if (parsed[key] === undefined) parsed[key] = optionValue;
     else if (Array.isArray(parsed[key])) parsed[key].push(optionValue);
     else parsed[key] = [parsed[key], optionValue];

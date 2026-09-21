@@ -1,7 +1,8 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { HerdrClient } from "./herdr.mjs";
-import { buildChildPrompt, buildOrchestratorPrompt } from "./prompts.mjs";
+import { buildChildPrompt, buildChildTaskPrompt, buildOrchestratorPrompt } from "./prompts.mjs";
+import { loadProfileConfig, resolveLaunch, validateProfileConfig } from "./profiles.mjs";
 import { createRunId, shortRunId, StateStore } from "./state.mjs";
 
 export const PLUGIN_ID = "efficient-coding.agent-loop";
@@ -24,7 +25,11 @@ export async function startRun({
   cwd: requestedCwd,
   task,
   acceptance = "",
-  orchestratorKind = "codex",
+  orchestratorProfile,
+  orchestratorKind,
+  orchestratorArgs,
+  profileConfig,
+  pluginConfigDir = process.env.HERDR_PLUGIN_CONFIG_DIR,
   stateStore = storeFromEnv(),
   herdr = new HerdrClient(),
   pluginRoot = process.env.HERDR_PLUGIN_ROOT,
@@ -34,6 +39,17 @@ export async function startRun({
   if (!workspaceId) throw new Error("A Herdr workspace is required");
   if (!task?.trim()) throw new Error("Task must not be empty");
   if (!pluginRoot) throw new Error("HERDR_PLUGIN_ROOT is required");
+
+  const launchProfiles = profileConfig
+    ? validateProfileConfig(profileConfig, "profileConfig")
+    : await loadProfileConfig(pluginConfigDir);
+  const orchestratorLaunch = resolveLaunch({
+    role: "orchestrator",
+    profileName: orchestratorProfile,
+    kind: orchestratorKind,
+    args: orchestratorArgs,
+    profileConfig: launchProfiles,
+  });
 
   let run;
   let suffix;
@@ -62,9 +78,15 @@ export async function startRun({
       session_key: sessionKey,
       cwd: resolvedCwd,
       state_dir: stateStore.runDir(runId),
+      state_root: stateStore.rootDir,
+      config_dir: pluginConfigDir || null,
+      plugin_root: pluginRoot,
       task,
       acceptance,
-      orchestrator_kind: orchestratorKind,
+      orchestrator_kind: orchestratorLaunch.kind,
+      profile_config_mode: "dynamic",
+      control_scope_version: 1,
+      control_recovery_pending: false,
       orchestrator: null,
     });
   }, { timeoutMs: 60_000, sessionKey });
@@ -75,7 +97,14 @@ export async function startRun({
       workspaceId,
       cwd: resolvedCwd,
       label: `Orchestrator ${suffix}`,
-      env: paneEnvironment({ run, stateStore, pluginRoot, role: "orchestrator", agentName: orchestratorName }),
+      env: paneEnvironment({
+        run,
+        stateStore,
+        pluginRoot,
+        configDir: pluginConfigDir,
+        role: "orchestrator",
+        agentName: orchestratorName,
+      }),
     });
     if (!created.rootPane?.pane_id || !created.tab?.tab_id) {
       throw new Error("Herdr did not return the new tab and root pane IDs");
@@ -85,7 +114,9 @@ export async function startRun({
       current.orchestrator = {
         agent_name: orchestratorName,
         role: "orchestrator",
-        kind: orchestratorKind,
+        profile: orchestratorLaunch.profile,
+        kind: orchestratorLaunch.kind,
+        arg_count: orchestratorLaunch.args.length,
         tab_id: created.tab.tab_id,
         pane_id: created.rootPane.pane_id,
         status: "starting",
@@ -93,7 +124,12 @@ export async function startRun({
       return current;
     });
 
-    await herdr.startAgent({ name: orchestratorName, kind: orchestratorKind, paneId: created.rootPane.pane_id });
+    await herdr.startAgent({
+      name: orchestratorName,
+      kind: orchestratorLaunch.kind,
+      paneId: created.rootPane.pane_id,
+      args: orchestratorLaunch.args,
+    });
     run = await stateStore.updateRun(runId, (current) => {
       current.status = "active";
       current.orchestrator.status = "idle";
@@ -105,6 +141,7 @@ export async function startRun({
       task,
       acceptance,
       pluginRoot,
+      profileConfig: launchProfiles,
     }));
     if (focus) await herdr.focusAgent(orchestratorName);
     return await stateStore.readRun(runId);
@@ -122,7 +159,11 @@ export async function spawnChild({
   runId,
   role,
   task,
+  profile,
   kind,
+  args,
+  profileConfig,
+  pluginConfigDir = process.env.AGENT_LOOP_CONFIG_DIR || process.env.HERDR_PLUGIN_CONFIG_DIR,
   callerPaneId,
   stateStore = storeFromEnv(),
   herdr = new HerdrClient(),
@@ -134,11 +175,27 @@ export async function spawnChild({
   if (!task?.trim()) throw new Error("Task must not be empty");
   if (!pluginRoot) throw new Error("AGENT_LOOP_PLUGIN_ROOT is required");
 
+  const launchProfiles = profileConfig
+    ? validateProfileConfig(profileConfig, "profileConfig")
+    : await loadProfileConfig(pluginConfigDir);
   let run = await stateStore.readRun(runId);
   assertOrchestrator(run, callerPaneId);
   if (run.status !== "active") throw new Error(`Run ${runId} is ${run.status}, not active`);
+  ({ run } = await ensureRunControlMetadata({
+    runId,
+    stateStore,
+    pluginRoot,
+    configDir: pluginConfigDir,
+  }));
 
-  const agentKind = kind || run.orchestrator_kind || "codex";
+  const agentLaunch = resolveLaunch({
+    role,
+    profileName: profile,
+    kind,
+    args,
+    profileConfig: launchProfiles,
+    fallbackKind: run.orchestrator_kind || "codex",
+  });
   let member;
   run = await stateStore.updateRun(runId, (current) => {
     assertOrchestrator(current, callerPaneId);
@@ -151,10 +208,14 @@ export async function spawnChild({
       agent_name: agentName,
       role,
       sequence,
-      kind: agentKind,
+      profile: agentLaunch.profile,
+      kind: agentLaunch.kind,
+      arg_count: agentLaunch.args.length,
       tab_id: null,
       pane_id: null,
       status: "reserved",
+      control_scope_version: 1,
+      control_recovery_pending: false,
       required: true,
       retired_at: null,
       created_at: new Date().toISOString(),
@@ -168,7 +229,14 @@ export async function spawnChild({
       workspaceId: run.workspace_id,
       cwd: run.cwd,
       label: `${role === "implementer" ? "Implementer" : "Verifier"} ${member.sequence}`,
-      env: paneEnvironment({ run, stateStore, pluginRoot, role, agentName: member.agent_name }),
+      env: paneEnvironment({
+        run,
+        stateStore,
+        pluginRoot,
+        configDir: pluginConfigDir,
+        role,
+        agentName: member.agent_name,
+      }),
     });
     if (!created.rootPane?.pane_id || !created.tab?.tab_id) {
       throw new Error("Herdr did not return the child tab and root pane IDs");
@@ -183,7 +251,12 @@ export async function spawnChild({
       agent.status = "starting";
       return current;
     });
-    await herdr.startAgent({ name: member.agent_name, kind: agentKind, paneId: member.pane_id });
+    await herdr.startAgent({
+      name: member.agent_name,
+      kind: agentLaunch.kind,
+      paneId: member.pane_id,
+      args: agentLaunch.args,
+    });
     await herdr.promptAgent(member.agent_name, buildChildPrompt({ role, task, run, agentName: member.agent_name, pluginRoot }));
     await stateStore.updateRun(runId, (current) => {
       const agent = current.agents.find((candidate) => candidate.agent_name === member.agent_name);
@@ -203,9 +276,27 @@ export async function spawnChild({
   }
 }
 
-export async function sendTask({ runId, agentName, task, callerPaneId, stateStore = storeFromEnv(), herdr = new HerdrClient() }) {
+export async function sendTask({
+  runId,
+  agentName,
+  task,
+  callerPaneId,
+  stateStore = storeFromEnv(),
+  herdr = new HerdrClient(),
+  pluginRoot = process.env.AGENT_LOOP_PLUGIN_ROOT || process.env.HERDR_PLUGIN_ROOT,
+  pluginConfigDir = process.env.AGENT_LOOP_CONFIG_DIR || process.env.HERDR_PLUGIN_CONFIG_DIR,
+}) {
+  if (!pluginRoot) throw new Error("AGENT_LOOP_PLUGIN_ROOT is required");
   let agent;
-  await stateStore.updateRun(runId, (current) => {
+  let run = await stateStore.readRun(runId);
+  assertOrchestrator(run, callerPaneId);
+  ({ run } = await ensureRunControlMetadata({
+    runId,
+    stateStore,
+    pluginRoot,
+    configDir: pluginConfigDir,
+  }));
+  run = await stateStore.updateRun(runId, (current) => {
     assertOrchestrator(current, callerPaneId);
     if (current.status !== "active") throw new Error(`Run ${runId} is ${current.status}, not active`);
     const currentAgent = current.agents.find((candidate) => candidate.agent_name === agentName);
@@ -219,17 +310,25 @@ export async function sendTask({ runId, agentName, task, callerPaneId, stateStor
     currentAgent.latest_result_status = null;
     currentAgent.latest_result_at = null;
     currentAgent.latest_result_data = null;
+    currentAgent.control_scope_version = 1;
+    currentAgent.control_recovery_pending = false;
     agent = { ...currentAgent };
     return current;
   });
   try {
-    await herdr.promptAgent(agentName, task);
+    await herdr.promptAgent(agentName, buildChildTaskPrompt({
+      role: agent.role,
+      task,
+      run,
+      pluginRoot,
+    }));
     return agent;
   } catch (error) {
     await stateStore.updateRun(runId, (current) => {
       const currentAgent = current.agents.find((candidate) => candidate.agent_name === agentName);
       currentAgent.status = "failed";
       currentAgent.failure = error.message;
+      currentAgent.control_recovery_pending = true;
       return current;
     });
     throw error;
@@ -313,14 +412,40 @@ export function assertOrchestrator(run, callerPaneId) {
   }
 }
 
-function paneEnvironment({ run, stateStore, pluginRoot, role, agentName }) {
-  return {
+export async function ensureRunControlMetadata({ runId, stateStore, pluginRoot, configDir }) {
+  let migrated = false;
+  const run = await stateStore.updateRun(runId, (current) => {
+    const membersCurrent = current.agents.every((agent) => agent.control_scope_version === 1);
+    if (current.control_scope_version === 1 && current.state_root && current.plugin_root && membersCurrent) {
+      return current;
+    }
+    current.state_root = current.state_root || stateStore.rootDir;
+    current.plugin_root = current.plugin_root || pluginRoot;
+    if (!Object.hasOwn(current, "config_dir")) current.config_dir = configDir || null;
+    current.control_scope_version = 1;
+    current.control_recovery_pending = true;
+    current.control_scope_migrated_at = new Date().toISOString();
+    for (const agent of current.agents) {
+      if (agent.control_scope_version === 1) continue;
+      agent.control_scope_version = 1;
+      agent.control_recovery_pending = true;
+    }
+    migrated = true;
+    return current;
+  });
+  return { run, migrated };
+}
+
+function paneEnvironment({ run, stateStore, pluginRoot, configDir, role, agentName }) {
+  const env = {
     AGENT_LOOP_RUN_ID: run.run_id,
     AGENT_LOOP_STATE_DIR: stateStore.rootDir,
     AGENT_LOOP_PLUGIN_ROOT: pluginRoot,
     AGENT_LOOP_ROLE: role,
     AGENT_LOOP_AGENT_NAME: agentName,
   };
+  if (configDir) env.AGENT_LOOP_CONFIG_DIR = configDir;
+  return env;
 }
 
 function validateVerifierPass(result) {

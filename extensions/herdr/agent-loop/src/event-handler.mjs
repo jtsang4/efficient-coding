@@ -2,7 +2,11 @@ import { pathToFileURL } from "node:url";
 import { storeFromEnv } from "./core.mjs";
 import { normalizePluginEvent } from "./events.mjs";
 import { HerdrClient } from "./herdr.mjs";
-import { buildEventNotification } from "./prompts.mjs";
+import {
+  buildChildControlRecoveryPrompt,
+  buildControlRecoveryPrompt,
+  buildEventNotification,
+} from "./prompts.mjs";
 
 export async function handlePluginEvent({
   eventName,
@@ -57,6 +61,24 @@ export async function handlePluginEvent({
     return current;
   });
 
+  if (member.control_recovery_pending && new Set(["idle", "done"]).has(event.status)) {
+    try {
+      await herdr.promptAgent(member.agent_name, buildChildControlRecoveryPrompt({
+        run,
+        member,
+        pluginRoot: run.plugin_root,
+      }));
+      await stateStore.updateRun(run.run_id, (current) => {
+        const agent = current.agents.find((candidate) => candidate.pane_id === event.pane_id);
+        agent.control_recovery_pending = false;
+        agent.control_recovery_prompted_at = new Date().toISOString();
+        return current;
+      });
+    } catch {
+      // Keep the recovery pending; a later idle event will retry it.
+    }
+  }
+
   if (!new Set(["idle", "done", "blocked", "unknown", "exited"]).has(event.status)) {
     return { ignored: true, reason: `non_settled_${event.status}` };
   }
@@ -82,9 +104,6 @@ export async function flushOrchestratorInbox({ runId, stateStore = storeFromEnv(
       if (run.status !== "active" || !run.orchestrator?.agent_name) {
         return { delivered: 0, reason: `run_${run.status}` };
       }
-      const pending = await stateStore.listInbox(runId, { undeliveredOnly: true });
-      if (!pending.length) return { delivered: 0, reason: "empty" };
-
       let orchestrator;
       try {
         orchestrator = await herdr.getAgent(run.orchestrator.agent_name);
@@ -95,6 +114,26 @@ export async function flushOrchestratorInbox({ runId, stateStore = storeFromEnv(
       if (!new Set(["idle", "done"]).has(status)) {
         return { delivered: 0, reason: `orchestrator_${status}` };
       }
+
+      if (run.control_recovery_pending) {
+        try {
+          await herdr.promptAgent(run.orchestrator.agent_name, buildControlRecoveryPrompt({
+            run,
+            pluginRoot: run.plugin_root,
+          }));
+        } catch (error) {
+          return { delivered: 0, reason: "control_recovery_prompt_failed", error: error.message };
+        }
+        await stateStore.updateRun(runId, (current) => {
+          current.control_recovery_pending = false;
+          current.control_recovery_prompted_at = new Date().toISOString();
+          return current;
+        });
+        return { delivered: 0, reason: "control_recovery_prompted" };
+      }
+
+      const pending = await stateStore.listInbox(runId, { undeliveredOnly: true });
+      if (!pending.length) return { delivered: 0, reason: "empty" };
 
       const batch = pending.slice(0, 20);
       try {

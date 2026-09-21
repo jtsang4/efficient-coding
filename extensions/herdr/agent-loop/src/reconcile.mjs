@@ -1,7 +1,8 @@
 import { pathToFileURL } from "node:url";
-import { storeFromEnv } from "./core.mjs";
+import { ensureRunControlMetadata, storeFromEnv } from "./core.mjs";
 import { flushOrchestratorInbox } from "./event-handler.mjs";
 import { HerdrClient } from "./herdr.mjs";
+import { buildChildControlRecoveryPrompt } from "./prompts.mjs";
 
 const SETTLED_STATUSES = new Set(["idle", "done", "blocked", "unknown"]);
 
@@ -9,13 +10,15 @@ export async function reconcileRuns({
   stateStore = storeFromEnv(),
   herdr = new HerdrClient(),
   sessionKey = process.env.HERDR_SOCKET_PATH || "default",
+  pluginRoot = process.env.HERDR_PLUGIN_ROOT,
+  configDir = process.env.HERDR_PLUGIN_CONFIG_DIR,
 } = {}) {
   const runs = await stateStore.listRuns({
     activeOnly: true,
     sessionKey,
   });
   const results = [];
-  for (const run of runs) {
+  for (let run of runs) {
     if (run.status === "starting") {
       await stateStore.updateRun(run.run_id, (current) => {
         current.status = "failed";
@@ -30,6 +33,13 @@ export async function reconcileRuns({
       continue;
     }
     if (!["active", "blocked", "paused"].includes(run.status)) continue;
+
+    ({ run } = await ensureRunControlMetadata({
+      runId: run.run_id,
+      stateStore,
+      pluginRoot,
+      configDir,
+    }));
 
     if (!run.orchestrator?.agent_name) {
       await markOrchestratorUnavailable(stateStore, run.run_id, "Run has no registered Orchestrator");
@@ -66,6 +76,23 @@ export async function reconcileRuns({
         currentMember.last_status_at = new Date().toISOString();
         return current;
       });
+      if (member.control_recovery_pending && new Set(["idle", "done"]).has(status)) {
+        try {
+          await herdr.promptAgent(member.agent_name, buildChildControlRecoveryPrompt({
+            run,
+            member,
+            pluginRoot: run.plugin_root,
+          }));
+          await stateStore.updateRun(run.run_id, (current) => {
+            const currentMember = current.agents.find((candidate) => candidate.agent_name === member.agent_name);
+            currentMember.control_recovery_pending = false;
+            currentMember.control_recovery_prompted_at = new Date().toISOString();
+            return current;
+          });
+        } catch {
+          // Keep the recovery pending; a later idle event will retry it.
+        }
+      }
       if (SETTLED_STATUSES.has(status) || status === "unavailable") {
         await stateStore.enqueue(run.run_id, {
           type: "startup.reconciled",

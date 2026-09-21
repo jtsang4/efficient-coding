@@ -17,7 +17,7 @@ export class HerdrClient {
     this.env = env;
   }
 
-  async run(args, { timeout = 30_000 } = {}) {
+  async run(args, { timeout = 30_000, displayCommand } = {}) {
     try {
       const { stdout, stderr } = await execFileAsync(this.binary, args, {
         encoding: "utf8",
@@ -27,7 +27,7 @@ export class HerdrClient {
       });
       return { stdout, stderr };
     } catch (error) {
-      throw new HerdrError(`herdr ${args.join(" ")} failed`, {
+      throw new HerdrError(`herdr ${displayCommand || args.join(" ")} failed`, {
         code: error.code,
         signal: error.signal,
         stdout: error.stdout,
@@ -36,12 +36,12 @@ export class HerdrClient {
     }
   }
 
-  async json(args, options) {
+  async json(args, options = {}) {
     const { stdout } = await this.run(args, options);
     try {
       return JSON.parse(stdout);
     } catch (error) {
-      throw new HerdrError(`herdr ${args.join(" ")} returned invalid JSON`, {
+      throw new HerdrError(`herdr ${options.displayCommand || args.join(" ")} returned invalid JSON`, {
         stdout,
         cause: error.message,
       });
@@ -84,7 +84,11 @@ export class HerdrClient {
   async startAgent({ name, kind, paneId, args = [] }) {
     const command = ["agent", "start", name, "--kind", kind, "--pane", paneId];
     if (args.length) command.push("--", ...args);
-    return unwrap(await this.json(command, { timeout: 300_000 }), "agent");
+    const suffix = args.length ? ` -- <${args.length} redacted agent args>` : "";
+    return unwrap(await this.json(command, {
+      timeout: 300_000,
+      displayCommand: `agent start ${name} --kind ${kind} --pane ${paneId}${suffix}`,
+    }), "agent");
   }
 
   async promptAgent(name, prompt) {

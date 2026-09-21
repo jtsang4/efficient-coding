@@ -66,6 +66,35 @@ test("child idle event is persisted and asynchronously delivered", async (t) => 
   assert.ok(inbox[0].delivered_at);
 });
 
+test("an old child receives scoped submit recovery on its next idle event", async (t) => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "agent-loop-child-recovery-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const store = new StateStore(root);
+  await createRun(store);
+  await store.updateRun("run-1", (run) => {
+    run.state_root = root;
+    run.plugin_root = "/plugin";
+    run.config_dir = "/config";
+    run.agents[0].control_scope_version = 1;
+    run.agents[0].control_recovery_pending = true;
+    return run;
+  });
+  const herdr = new FakeHerdr("idle");
+
+  await handlePluginEvent({
+    eventName: "pane.agent_status_changed",
+    eventJson: JSON.stringify({ data: { pane_id: "w1:p2", agent_status: "idle" } }),
+    stateStore: store,
+    herdr,
+  });
+
+  const run = await store.readRun("run-1");
+  assert.equal(run.agents[0].control_recovery_pending, false);
+  assert.equal(herdr.prompts[0].name, "implementer-1");
+  assert.match(herdr.prompts[0].prompt, /submit/);
+  assert.match(herdr.prompts[0].prompt, /--state-dir/);
+});
+
 test("events queue while orchestrator works and flush when it becomes idle", async (t) => {
   const root = await mkdtemp(path.join(os.tmpdir(), "agent-loop-queue-"));
   t.after(() => rm(root, { recursive: true, force: true }));

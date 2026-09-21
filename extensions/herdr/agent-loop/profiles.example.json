@@ -1,0 +1,25 @@
+{
+  "defaults": {
+    "orchestrator": "orchestrator-codex",
+    "implementer": "implementer-claude",
+    "verifier": "verifier-codex"
+  },
+  "profiles": {
+    "orchestrator-codex": {
+      "kind": "codex",
+      "args": []
+    },
+    "orchestrator-claude-unrestricted": {
+      "kind": "claude",
+      "args": ["--dangerously-skip-permissions"]
+    },
+    "implementer-claude": {
+      "kind": "claude",
+      "args": ["--permission-mode", "acceptEdits"]
+    },
+    "verifier-codex": {
+      "kind": "codex",
+      "args": ["--sandbox", "workspace-write", "--ask-for-approval", "on-request"]
+    }
+  }
+}
