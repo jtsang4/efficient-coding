@@ -1,0 +1,13 @@
+{
+  "name": "efficient-coding-herdr-agent-loop",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "check": "node --check src/action.mjs && node --check src/launcher.mjs && node --check src/team.mjs && node --check src/event-handler.mjs && node --check src/reconcile.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

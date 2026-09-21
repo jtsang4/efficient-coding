@@ -1,0 +1,57 @@
+id = "efficient-coding.agent-loop"
+name = "Agent Loop"
+version = "0.1.0"
+min_herdr_version = "0.9.1"
+description = "Run an asynchronous orchestrator-led implementation and verification loop"
+platforms = ["linux", "macos", "windows"]
+
+[[startup]]
+command = ["node", "src/reconcile.mjs"]
+
+[[actions]]
+id = "start"
+title = "Agent Loop: Start"
+contexts = ["workspace", "selection"]
+command = ["node", "src/action.mjs", "start"]
+
+[[actions]]
+id = "focus"
+title = "Agent Loop: Focus orchestrator"
+contexts = ["workspace"]
+command = ["node", "src/action.mjs", "focus"]
+
+[[actions]]
+id = "status"
+title = "Agent Loop: Show status"
+contexts = ["workspace"]
+command = ["node", "src/action.mjs", "status"]
+
+[[actions]]
+id = "abandon"
+title = "Agent Loop: Abandon active run"
+contexts = ["workspace"]
+command = ["node", "src/action.mjs", "abandon"]
+
+[[events]]
+on = "pane.agent_status_changed"
+command = ["node", "src/event-handler.mjs"]
+
+[[events]]
+on = "pane.exited"
+command = ["node", "src/event-handler.mjs"]
+
+[[panes]]
+id = "launcher"
+title = "Start Agent Loop"
+placement = "popup"
+width = "80%"
+height = 28
+command = ["node", "src/launcher.mjs"]
+
+[[panes]]
+id = "status"
+title = "Agent Loop Status"
+placement = "popup"
+width = "80%"
+height = 24
+command = ["node", "src/status.mjs"]
