@@ -1,6 +1,6 @@
 id = "efficient-coding.agent-loop"
 name = "Agent Loop"
-version = "0.2.1"
+version = "0.2.2"
 min_herdr_version = "0.9.1"
 description = "Run an asynchronous orchestrator-led implementation and verification loop"
 platforms = ["linux", "macos", "windows"]

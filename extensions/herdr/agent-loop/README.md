@@ -47,7 +47,7 @@ herdr plugin link /absolute/path/to/efficient-coding/extensions/herdr/agent-loop
 
 1. 在 Herdr 中打开目标项目 Workspace。
 2. 调用插件动作 `Agent Loop: Start`。
-3. 在 Popup 中输入任务、验收要求、Orchestrator Profile 或 Agent 类型，以及可选的启动参数；每个多行输入以单独一行 `.` 结束。
+3. 在 Popup 向导中输入任务、验收要求、Orchestrator Profile 或 Agent 类型，以及可选的启动参数；多行输入完成后，另起一行输入 `/done`。为兼容旧版本，单独一行 `.` 也可以结束输入。
 4. 插件在当前 Workspace 创建 Orchestrator Tab，并立即将任务交给它。
 5. Orchestrator 根据任务动态创建 Implementer 和 Verifier，采用非阻塞方式派发。
 6. 子 Agent 停下来后，插件将事件写入 Inbox，并在 Orchestrator 空闲时通知它。
