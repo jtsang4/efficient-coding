@@ -4,7 +4,7 @@ import { pathToFileURL } from "node:url";
 import { storeFromEnv } from "./core.mjs";
 
 async function main() {
-  const workspaceId = process.env.HERDR_WORKSPACE_ID;
+  const workspaceId = process.env.AGENT_LOOP_WORKSPACE_ID || process.env.HERDR_WORKSPACE_ID;
   if (!workspaceId) throw new Error("Status must be opened from a Herdr workspace");
   const store = storeFromEnv();
   const run = await store.findActiveByWorkspace(workspaceId, process.env.HERDR_SOCKET_PATH || "default");

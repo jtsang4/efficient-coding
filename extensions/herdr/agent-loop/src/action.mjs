@@ -61,9 +61,11 @@ async function main() {
     }
     if (!cwd) throw new Error("Could not resolve the current project cwd from the Herdr pane context");
     await herdr.openPluginPane("launcher", {
-      workspaceId,
       focus: true,
-      env: { AGENT_LOOP_WORKSPACE_CWD: cwd },
+      env: {
+        AGENT_LOOP_WORKSPACE_ID: workspaceId,
+        AGENT_LOOP_WORKSPACE_CWD: cwd,
+      },
     });
     return;
   }
@@ -76,7 +78,10 @@ async function main() {
     return;
   }
   if (action === "status") {
-    await herdr.openPluginPane("status", { workspaceId, focus: true });
+    await herdr.openPluginPane("status", {
+      focus: true,
+      env: { AGENT_LOOP_WORKSPACE_ID: workspaceId },
+    });
     return;
   }
   if (action === "abandon") {

@@ -17,7 +17,7 @@ export class HerdrClient {
     this.env = env;
   }
 
-  async run(args, { timeout = 30_000, displayCommand } = {}) {
+  async run(args, { timeout = 30_000, displayCommand, errorDetail = "message" } = {}) {
     try {
       const { stdout, stderr } = await execFileAsync(this.binary, args, {
         encoding: "utf8",
@@ -27,7 +27,10 @@ export class HerdrClient {
       });
       return { stdout, stderr };
     } catch (error) {
-      throw new HerdrError(`herdr ${displayCommand || args.join(" ")} failed`, {
+      const summary = herdrFailureSummary(error.stdout, {
+        includeMessage: errorDetail === "message",
+      });
+      throw new HerdrError(`herdr ${displayCommand || args.join(" ")} failed${summary ? `: ${summary}` : ""}`, {
         code: error.code,
         signal: error.signal,
         stdout: error.stdout,
@@ -48,9 +51,8 @@ export class HerdrClient {
     }
   }
 
-  async openPluginPane(entrypoint, { workspaceId, placement, focus = true, env = {} } = {}) {
+  async openPluginPane(entrypoint, { placement, focus = true, env = {} } = {}) {
     const args = pluginPaneOpenArgs(entrypoint, {
-      workspaceId,
       placement,
       focus,
       env,
@@ -88,11 +90,16 @@ export class HerdrClient {
     return unwrap(await this.json(command, {
       timeout: 300_000,
       displayCommand: `agent start ${name} --kind ${kind} --pane ${paneId}${suffix}`,
+      errorDetail: "code",
     }), "agent");
   }
 
   async promptAgent(name, prompt) {
-    return unwrap(await this.json(["agent", "prompt", name, prompt], { timeout: 30_000 }), "agent");
+    return unwrap(await this.json(["agent", "prompt", name, prompt], {
+      timeout: 30_000,
+      displayCommand: `agent prompt ${name} <redacted prompt>`,
+      errorDetail: "code",
+    }), "agent");
   }
 
   async getAgent(name) {
@@ -125,7 +132,6 @@ export function unwrap(response, key) {
 }
 
 export function pluginPaneOpenArgs(entrypoint, {
-  workspaceId,
   placement,
   focus = true,
   env = {},
@@ -133,10 +139,23 @@ export function pluginPaneOpenArgs(entrypoint, {
 } = {}) {
   const args = ["plugin", "pane", "open", "--plugin", pluginId, "--entrypoint", entrypoint];
   if (placement) args.push("--placement", placement);
-  if (workspaceId) args.push("--workspace", workspaceId);
   for (const [key, value] of Object.entries(env)) {
     if (value !== undefined && value !== null && value !== "") args.push("--env", `${key}=${value}`);
   }
   args.push(focus ? "--focus" : "--no-focus");
   return args;
+}
+
+export function herdrFailureSummary(stdout, { includeMessage = true } = {}) {
+  if (typeof stdout !== "string" || !stdout.trim()) return "";
+  try {
+    const response = JSON.parse(stdout);
+    const code = typeof response?.error?.code === "string" ? response.error.code.trim() : "";
+    const message = typeof response?.error?.message === "string" ? response.error.message.trim() : "";
+    if (!includeMessage) return code;
+    if (code && message) return `${code}: ${message}`;
+    return code || message;
+  } catch {
+    return "";
+  }
 }

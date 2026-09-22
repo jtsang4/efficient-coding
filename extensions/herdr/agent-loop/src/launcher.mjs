@@ -19,7 +19,7 @@ async function readBlock(rl, title, { required = false } = {}) {
 
 async function main() {
   if (!stdin.isTTY) throw new Error("Launcher requires an interactive Herdr popup");
-  const workspaceId = process.env.HERDR_WORKSPACE_ID;
+  const workspaceId = process.env.AGENT_LOOP_WORKSPACE_ID || process.env.HERDR_WORKSPACE_ID;
   if (!workspaceId) throw new Error("Launcher must be opened from a Herdr workspace");
   const cwd = process.env.AGENT_LOOP_WORKSPACE_CWD;
   if (!cwd) throw new Error("Launcher did not receive the target workspace cwd");
