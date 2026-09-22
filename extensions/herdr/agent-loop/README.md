@@ -152,6 +152,8 @@ command = "efficient-coding.agent-loop.start"
 description = "start agent loop"
 ```
 
+如果希望让 Coding Agent 自动检查冲突、备份配置、写入快捷键并热重载 Herdr，可直接把[快捷键配置 Prompt](docs/configure-keybinding-prompt.md)发送给 Agent。Prompt 会优先选择未占用的候选键，并在配置校验失败时恢复备份。
+
 其他动作：
 
 - `Agent Loop: Focus orchestrator`：跳转到当前运行的 Orchestrator。
