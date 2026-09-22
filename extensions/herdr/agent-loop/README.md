@@ -43,6 +43,8 @@ herdr plugin install jtsang4/efficient-coding/extensions/herdr/agent-loop
 herdr plugin link /absolute/path/to/efficient-coding/extensions/herdr/agent-loop
 ```
 
+完整卸载时，除注销插件外，还应移除插件专属 Profile、运行状态和 `config.toml` 中关联的快捷键。可以把[完整卸载 Prompt](docs/uninstall-prompt.md)发送给 Coding Agent，让它检查活跃运行、备份并精准清理这些内容。
+
 ## 使用
 
 1. 在 Herdr 中打开目标项目 Workspace。
@@ -150,9 +152,15 @@ key = "prefix+a"
 type = "plugin_action"
 command = "efficient-coding.agent-loop.start"
 description = "start agent loop"
+
+[[keys.command]]
+key = "prefix+shift+a"
+type = "plugin_action"
+command = "efficient-coding.agent-loop.abandon"
+description = "abandon active agent loop"
 ```
 
-如果希望让 Coding Agent 自动检查冲突、备份配置、写入快捷键并热重载 Herdr，可直接把[快捷键配置 Prompt](docs/configure-keybinding-prompt.md)发送给 Agent。Prompt 会优先选择未占用的候选键，并在配置校验失败时恢复备份。
+如果希望让 Coding Agent 自动检查冲突、备份配置、写入启动与停止快捷键并热重载 Herdr，可直接把[快捷键配置 Prompt](docs/configure-keybinding-prompt.md)发送给 Agent。Prompt 会保留已有绑定、为缺少的动作选择未占用快捷键，并在配置校验失败时恢复备份。
 
 其他动作：
 
