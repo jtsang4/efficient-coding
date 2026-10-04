@@ -46,6 +46,7 @@ Skills 是可复用的“能力/流程/方法论”，用来指导如何推进�
 | [`worktree-manager`](skills/worktree-manager/SKILL.md) | 流程 | 基于 Worktrunk（`wt`）的 worktree 管理：switch/create/list/merge/remove + 安全护栏。 |
 | [`merge-and-rebase`](skills/merge-and-rebase/SKILL.md) | 流程 | 特性分支收尾：提交并推送、向主干发起 PR/MR、以非 squash 方式合并，再把特性分支 rebase 到最新主干。 |
 | [`prove-it`](skills/prove-it/SKILL.md) | 验证 | 思路或设计"听起来可行"但没有被证明：要求拿出可证伪的实证，而不是继续讲道理——拆出致命主张、动手前冻结通过/击杀标准、按代表性难度建项目或改造现有项目，最后由独立审计把关。 |
+| [`prune`](skills/prune/SKILL.md) | 流程 | 定期给 agent 开发的项目瘦身和做架构重构：在行为不变的前提下删掉死代码、重复实现、废弃路径、没人用的功能与内部 API、过度防御和过度抽象，并修正让这些冗余反复长出来的结构；组件库、生成代码、对外契约等资产不动；每轮按日期记账到 `docs/prune/`。 |
 
 ### 安装
 
@@ -66,6 +67,7 @@ Skills 是可复用的“能力/流程/方法论”，用来指导如何推进�
 - 修 bug：先 `systematic-debugging`，补上失败用例，再用 `test-driven-development` 做最小修复。
 - 特性分支改完要合回主干时用 `merge-and-rebase`：提交并推送 → 发起 PR/MR → 非 squash 合并 → 把分支 rebase 到最新主干。
 - 当 agent 给出的思路/设计听起来可行，但你不确定它扛不扛得住真实复杂度时，用 `prove-it`：它会把提案拆成一条条主张、标出哪几条一旦为假整个思路就死、在动手前冻结通过与击杀标准，然后拿你能自己跑的证据去证明或推翻。"不可行"也是合法结论。
+- 想给 agent 开发的项目做一轮周期性瘦身时，直接调用 `prune`，不需要任何参数：它默认扫描整个项目，机械类清理直接做，结构类改动（包括删除没人用的功能）让你勾选，架构调整先出设计提案、你批准后由它自己完成迁移；每个候选或迁移步骤一个 commit，回归就 revert，架构迁移要么完整落地要么整体回退；最后由独立 reviewer 检查行为变化，把运行记录写到 `docs/prune/YYYY-MM-DD.md`，资产和刻意保留的复杂度维护在 `docs/prune/keep.md`。它直接在当前分支或 worktree 上工作，不负责创建隔离环境。
 - 浏览器交互类任务（导航/点击/填表/截图/抓取）优先使用 `dev-browser`。
 - 只要问题应该从用户的 Cubox 收藏里找答案，优先使用 `cubox-research`；它会有意识地扩展关键词、抓取最相关文章详情，并在用户明确要求前保持只读。
 - 只要任务是在调 Memos 的 API，尤其是 memos / attachments / activities 相关操作，优先使用 `memos`；它自带 Bun CLI 和内置 API 摘要，并要求本地 `.env` 配好 `MEMOS_BASE_URL` 与 `MEMOS_ACCESS_TOKEN`。
