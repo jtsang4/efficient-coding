@@ -1,122 +1,137 @@
-# Efficient Coding（高效编码）
+<h1 align="center">Efficient Coding（高效编码）</h1>
 
-[English](README.md) | 中文
+<p align="center">配合 Claude Code、Codex 等编程 Agent 使用的 skills、MCP 配置和小工具。</p>
 
-这个仓库包含：
-- 可选的 MCP Server 配置。
-- 可复用的 agent skills/playbooks（用 `bunx skills add` 安装）。
+<p align="center"><a href="README.md">English</a> · 中文</p>
 
-## MCP Servers
+<p align="center">
+  <a href="#精选扩散图谱">扩散图谱</a> ·
+  <a href="#skills">Skills</a> ·
+  <a href="#mcp-servers">MCP</a> ·
+  <a href="#工程规范">工程规范</a> ·
+  <a href="#脚本与配置">脚本与配置</a>
+</p>
 
-| 服务器 | 用途 | 传输 | 命令 | 来源 |
-| --- | --- | --- | --- | --- |
-| fetcher (fetcher-mcp) | 使用 Playwright 无头浏览器抓取网页内容。 | stdio | `bunx -y fetcher-mcp` | https://www.npmjs.com/package/fetcher-mcp |
+## 精选：扩散图谱
 
-使用 MCP Server 时，把它添加到你所用 coding agent 的 MCP 配置里即可。更通用的示例配置见 `.mcp.json`。
+跨越多次对话学一个领域，或者打磨一个构思。Agent 先确立几个**支柱**，再随着对话把图谱向外生长、重组。每个节点都记得它来自哪段 Claude Code 或 Codex 对话，本地网页把这一切画成在宣纸上晕开的墨迹。
+
+<p align="center"><img src="docs/images/diffusion-map/zh-map.jpg" alt="一张关于 Rust 所有权的扩散图谱：五个支柱和它们的分支，底部是由墨滴组成的时间轴" width="100%"></p>
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/images/diffusion-map/zh-conversation.jpg" alt="节点侧栏中阅读关联的对话，相关的轮次被标出"></td>
+    <td width="50%"><img src="docs/images/diffusion-map/zh-ideation-dark.jpg" alt="深色模式下的项目构思图谱，选中了一个已否决的方案"></td>
+  </tr>
+  <tr>
+    <td><sub><b>回到源头。</b>点开节点，就能重读它背后的对话，相关的轮次已经标出。</sub></td>
+    <td><sub><b>不只是学习。</b>每张图自己定义节点类型和状态，也能用来构思项目、权衡决策。</sub></td>
+  </tr>
+</table>
+
+- **随对话生长**：何时新增、合并、移动或搁置节点，由 Agent 自己判断，拿不准时才问你。
+- **随时接着来**：图谱保存在 `~/.efficient-coding/diffusion/`，之后任何一次会话、两种 Agent 都能继续；不再需要的图谱可以在列表页直接删除。
+- **可以回放**：时间轴按真实时间回放图谱的生长，每一次生长是一滴墨。
+- **零配置**：只需要 Bun，不用装依赖、也不用构建；网页服务闲置后自动退出。
+
+```bash
+bunx skills add https://github.com/jtsang4/efficient-coding --skill diffusion-map -g
+```
+
+然后带上主题手动调用，例如在 Claude Code 里用 `/diffusion-map Rust 所有权`，在 Codex 里用 `$diffusion-map`。[了解工作方式 →](skills/diffusion-map/SKILL.md)
 
 ## Skills
 
-Skills 是可复用的“能力/流程/方法论”，用来指导如何推进任务（例如拆解需求、写计划、系统化调试、TDD）。
+安装任意 skill：`bunx skills add https://github.com/jtsang4/efficient-coding --skill <name>`（加 `-g` 全局安装）。在请求里点名某个 skill 即可强制使用它。
 
-| Skill | 类型 | 适用场景 |
-| --- | --- | --- |
-| [`use-remote-skill`](skills/use-remote-skill/SKILL.md) | 元技能 | 从明确指定的来源或全局/项目 YAML 配置中临时加载远程技能，在当前会话使用，并支持自然语言维护配置。优先 `bunx skills use`，缺少 `bunx` 时回退 `npx`，不搜索技能市场。 |
-| [`assess-source-project-fit`](skills/assess-source-project-fit/SKILL.md) | 研究 | 判断一篇论文、文章、仓库、分享或内部文档是否真能给现有项目带来价值：把每个想法对照当前实现逐条评估，允许得出"没有值得引入的东西"这一结论。 |
-| [`brainstorming`](skills/brainstorming/SKILL.md) | 流程 | 新功能/需求不清：先把目标、约束、方案与验收口径问清楚。 |
-| [`problem-framing`](skills/problem-framing/SKILL.md) | 流程 | 方案不断增加特例或讨论反复不收敛：核实底层需求，明确指出疑似伪问题，在保留真实约束的前提下验证更简单的问题表述。 |
-| [`agent-native-redesign`](skills/agent-native-redesign/SKILL.md) | 流程 | 假设 Agent 和 token 预算充裕，重设计项目或流程：挑战历史假设，先提出理想运作方式，再分析质量、自动化与规模化的改善，并验证关键依赖。 |
-| [`codex-skill-creator`](skills/codex-skill-creator/SKILL.md) | 元技能 | 创建、改进、评测、人工评审并打包 Codex skills，包含成对 eval 运行和 `eval-viewer/generate_review.py` 审阅流程。 |
-| [`cubox-research`](skills/cubox-research/SKILL.md) | 研究 | 以用户的 Cubox 收藏为事实来源做主题研究：主动扩展关键词、抓取最相关文章详情，并基于导出的 Markdown 做本地分析。需要 Bun 和已配置的 `.env`。 |
-| [`i-diagram`](skills/i-diagram/SKILL.md) | 制图 | 画各类技术图与概念图——架构图、流程图、时序图、状态机、思维导图、时间线——输出单个自包含 SVG，支持明暗两套主题。 |
-| [`harness`](skills/harness/SKILL.md) | 流程 | 通过 Harness Engineering 将任意代码项目转化为适配 AI Agent 协作的形态。扫描代码库、提取工程知识、生成结构化上下文文档。 |
-| [`memos`](skills/memos/SKILL.md) | 集成 | 对接 Memos REST API，处理 memos、attachments、activities：支持 memo 的增删改查，以及 comments、reactions、relations、attachments 等操作。需要 Bun 和已配置的 `.env`。 |
-| [`paseo-relay`](skills/paseo-relay/SKILL.md) | 集成 | 通过已授权的 Relay 配对信息，用本地 Paseo CLI 连接其它 host，发现 workspace 与 agent、读取会话并执行用户要求的操作。可选 SDK 读取补充身份核验、profiles 和完整原始 timeline。 |
-| [`dev-browser`](skills/dev-browser/SKILL.md) | 自动化 | 浏览器/Web 自动化：页面导航、点击/填表、截图、抓取数据，或测试登录态流程。 |
-| [`exa-web-search`](skills/exa-web-search/SKILL.md) | 研究 | 通过 Exa MCP 免费做 Web/代码/公司信息检索（无需 API key），适合查最新信息与代码示例。 |
-| [`readwise-research`](skills/readwise-research/SKILL.md) | 研究 | 基于用户的 Readwise/Reader 文档与 highlights 生成主题 memo，并在任何写操作前先给出 shortlist/tag/archive 建议。 |
-| [`see`](skills/see/SKILL.md) | 集成 | 对接 S.EE 平台 API，处理短链、文本分享与文件分享。 |
-| [`shape`](skills/shape/SKILL.md) | 产品 | 在编码前把模糊想法梳理为清晰的产品决策与 SPEC 文档。 |
-| [`impeccable`（外部收藏）](https://github.com/pbakaus/impeccable) | 参考（外部） | 面向前端设计的外部参考（包含 `frontend-design` skill、17 个设计指令与反模式清单），适合做审查、润色、动效、配色与响应式细化；仅作收藏链接（本仓库未内置）。 |
-| [`ui-ux-pro-max-skill`（外部收藏）](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) | 参考（外部） | UI/UX 相关提示词与流程参考；仅作为收藏链接（本仓库未内置）。 |
-| [`systematic-debugging`](skills/systematic-debugging/SKILL.md) | 流程 | 修 bug / 测试不稳定 / 行为异常：先定位根因并稳定复现，再谈修复。 |
-| [`writing-plans`](skills/writing-plans/SKILL.md) | 流程 | 方案基本定了：把工作拆成可执行步骤与验证口径。 |
-| [`executing-plans`](skills/executing-plans/SKILL.md) | 推进 | 按计划分批执行，每批有检查点与复核。 |
-| [`subagent-driven-development`](skills/subagent-driven-development/SKILL.md) | 推进 | 在当前会话逐任务派发子代理，并做“spec 合规 → 代码质量”两阶段 review。 |
-| [`test-driven-development`](skills/test-driven-development/SKILL.md) | 实现 | 编码阶段：Red → Green → Refactor（没有失败测试不写生产代码）。 |
-| [`worktree-manager`](skills/worktree-manager/SKILL.md) | 流程 | 基于 Worktrunk（`wt`）的 worktree 管理：switch/create/list/merge/remove + 安全护栏。 |
-| [`merge-and-rebase`](skills/merge-and-rebase/SKILL.md) | 流程 | 特性分支收尾：提交并推送、向主干发起 PR/MR、以非 squash 方式合并，再把特性分支 rebase 到最新主干。 |
-| [`prove-it`](skills/prove-it/SKILL.md) | 验证 | 思路或设计"听起来可行"但没有被证明：要求拿出可证伪的实证，而不是继续讲道理——拆出致命主张、动手前冻结通过/击杀标准、按代表性难度建项目或改造现有项目，最后由独立审计把关。 |
-| [`prune`](skills/prune/SKILL.md) | 流程 | 定期给 agent 开发的项目瘦身和做架构重构：在行为不变的前提下删掉死代码、重复实现、废弃路径、没人用的功能与内部 API、过度防御和过度抽象，并修正让这些冗余反复长出来的结构；组件库、生成代码、对外契约等资产不动；每轮按日期记账到 `docs/prune/`。 |
+**规划与实现**：默认流程优先，`brainstorming` / `systematic-debugging` → `writing-plans` → `executing-plans` 或 `subagent-driven-development` → 每个任务内部用 `test-driven-development`。
 
-### 安装
+| Skill | 什么时候用 |
+| --- | --- |
+| [`brainstorming`](skills/brainstorming/SKILL.md) | 新功能或需求还模糊：先把设计定下来。 |
+| [`shape`](skills/shape/SKILL.md) | 编码前把产品想法梳理成清晰的决策和 SPEC。 |
+| [`problem-framing`](skills/problem-framing/SKILL.md) | 方案不断长出特例或讨论不收敛：检查问题本身是不是定义错了。 |
+| [`agent-native-redesign`](skills/agent-native-redesign/SKILL.md) | 假设 Agent 和 token 预算充裕，重新设计项目或流程。 |
+| [`prove-it`](skills/prove-it/SKILL.md) | 想法听起来可行但没被证明：先冻结通过/击杀标准，再用可运行的证据证明或推翻。 |
+| [`writing-plans`](skills/writing-plans/SKILL.md) | 方案已定：拆成带验证口径的执行步骤。 |
+| [`executing-plans`](skills/executing-plans/SKILL.md) | 按计划分批执行，每批设检查点。 |
+| [`subagent-driven-development`](skills/subagent-driven-development/SKILL.md) | 在当前会话按任务派发子 Agent，再做 spec 与质量两轮 review。 |
+| [`test-driven-development`](skills/test-driven-development/SKILL.md) | 任何功能、修复或重构：Red → Green → Refactor。 |
+| [`systematic-debugging`](skills/systematic-debugging/SKILL.md) | bug、不稳定的测试或"行为异常"：先找根因、补失败用例，再修。 |
+| [`worktree-manager`](skills/worktree-manager/SKILL.md) | 用 Worktrunk（`wt`）创建、切换、合并、删除 worktree，带安全护栏。 |
+| [`merge-and-rebase`](skills/merge-and-rebase/SKILL.md) | 特性分支收尾：提交、发 PR/MR、非 squash 合并，再 rebase 到最新主干。 |
+| [`prune`](skills/prune/SKILL.md) | 定期给 Agent 开发的项目瘦身：在行为不变的前提下清掉死代码、重复实现、没人用的功能和过度抽象，并修正让它们反复长出来的结构。无需参数直接调用，每轮记录在 `docs/prune/`。 |
+| [`harness`](skills/harness/SKILL.md) | 提取代码库的工程知识、生成结构化上下文文档，让项目更适合 Agent 协作。 |
 
-- `bunx skills add https://github.com/jtsang4/efficient-coding --skill use-remote-skill -g`
-- `bunx skills add http://github.com/jtsang4/efficient-coding --skill brainstorming`
-- `bunx skills add http://github.com/jtsang4/efficient-coding --skill codex-skill-creator`
-- `bunx skills add http://github.com/jtsang4/efficient-coding --skill memos`
-- 模板：`bunx skills add http://github.com/jtsang4/efficient-coding --skill <skill>`
+**学习与研究**
 
-### 使用
+| Skill | 什么时候用 |
+| --- | --- |
+| [`diffusion-map`](skills/diffusion-map/SKILL.md) | 想跨多次会话学一个领域或打磨构思，并留下可回放的图谱（[见上文](#精选扩散图谱)）。 |
+| [`assess-source-project-fit`](skills/assess-source-project-fit/SKILL.md) | 判断一篇论文、一个仓库或一次分享是否真能补上项目的短板（"没有值得引入的"也是合法结论）。 |
+| [`exa-web-search`](skills/exa-web-search/SKILL.md) | 需要最新的网页、代码或公司信息（免费的 Exa MCP，无需 API key）。 |
+| [`cubox-research`](skills/cubox-research/SKILL.md) | 答案应该来自你的 Cubox 收藏：广泛检索、保持只读。需要 Bun 和 `.env`。 |
+| [`readwise-research`](skills/readwise-research/SKILL.md) | 答案应该来自你在 Readwise/Reader 里存过、标注过的内容；改动前先给建议。 |
 
-- 临时使用远程技能时，调用 `use-remote-skill`，提供来源和技能名、点名已配置的别名，或要求它维护 `~/.config/use-remote-skill/config.yaml` / `<项目根目录>/.agents/remote-skills.yaml`。参见[配置格式和可选的自动匹配设置](skills/use-remote-skill/references/configuration.md)。例如：“用 jtsang4/efficient-coding 仓库里的 plan-review 审查这个计划。”
-- 想强制触发某个 skill：在指令里直接点名（点名优先）。
-- 复杂度持续增加或讨论卡住时，调用 `$problem-framing`，检查问题定义是否合理、哪些假设缺少依据，并提出更简单的问题表述和最小验证步骤。
-- 想以充裕的 Agent 执行能力重新审视当前项目或场景时，用 `agent-native-redesign`：挑战历史约束，先描绘理想运作方式，再评估可行性和新的瓶颈。
-- 如果你是在创建新 skill、修改已有 skill、优化 description 触发效果，或者给 skill 跑一轮可人工审阅的 eval，优先使用 `codex-skill-creator`。
-- 同时命中多个 skills：默认“流程优先”——先决定怎么做，再进入实现：`brainstorming`/`systematic-debugging` → `writing-plans` →（`executing-plans` 或 `subagent-driven-development`）→ 每个任务内部用 `test-driven-development`。
-- 修 bug：先 `systematic-debugging`，补上失败用例，再用 `test-driven-development` 做最小修复。
-- 特性分支改完要合回主干时用 `merge-and-rebase`：提交并推送 → 发起 PR/MR → 非 squash 合并 → 把分支 rebase 到最新主干。
-- 当 agent 给出的思路/设计听起来可行，但你不确定它扛不扛得住真实复杂度时，用 `prove-it`：它会把提案拆成一条条主张、标出哪几条一旦为假整个思路就死、在动手前冻结通过与击杀标准，然后拿你能自己跑的证据去证明或推翻。"不可行"也是合法结论。
-- 想给 agent 开发的项目做一轮周期性瘦身时，直接调用 `prune`，不需要任何参数：它默认扫描整个项目，机械类清理直接做，结构类改动（包括删除没人用的功能）让你勾选，架构调整先出设计提案、你批准后由它自己完成迁移；每个候选或迁移步骤一个 commit，回归就 revert，架构迁移要么完整落地要么整体回退；最后由独立 reviewer 检查行为变化，把运行记录写到 `docs/prune/YYYY-MM-DD.md`，资产和刻意保留的复杂度维护在 `docs/prune/keep.md`。它直接在当前分支或 worktree 上工作，不负责创建隔离环境。
-- 浏览器交互类任务（导航/点击/填表/截图/抓取）优先使用 `dev-browser`。
-- 只要问题应该从用户的 Cubox 收藏里找答案，优先使用 `cubox-research`；它会有意识地扩展关键词、抓取最相关文章详情，并在用户明确要求前保持只读。
-- 只要任务是在调 Memos 的 API，尤其是 memos / attachments / activities 相关操作，优先使用 `memos`；它自带 Bun CLI 和内置 API 摘要，并要求本地 `.env` 配好 `MEMOS_BASE_URL` 与 `MEMOS_ACCESS_TOKEN`。
-- 需要通过 Paseo 跨 host 操作时，使用 `paseo-relay`：取得或复用已授权的配对信息、核验目标 host，再执行原生 `paseo` 命令。默认只读探查，远端变更按用户明确授权执行。CLI 缺少的读取能力见[可选 SDK 读取与验证](skills/paseo-relay/references/sdk.md)。
-- Web/代码/公司信息检索类任务优先使用 `exa-web-search`。
-- 只要问题是在问“我在 Readwise/Reader 里已经读过、存过、标注过什么”，优先使用 `readwise-research`；它会把 Readwise 库当作事实来源，并在用户明确确认前保持只读。
-- 前端视觉设计 / UI 润色 / 设计审查 / 动效与响应式细化时，可把 [`impeccable`](https://github.com/pbakaus/impeccable) 作为外部设计参考一起使用。
+**集成与自动化**
+
+| Skill | 什么时候用 |
+| --- | --- |
+| [`dev-browser`](skills/dev-browser/SKILL.md) | 页面导航、点击填表、截图、抓取，或测试登录态流程。 |
+| [`memos`](skills/memos/SKILL.md) | 调用 Memos API（memos、附件、动态）。需要 Bun 和配置了 `MEMOS_BASE_URL`、`MEMOS_ACCESS_TOKEN` 的 `.env`。 |
+| [`paseo-relay`](skills/paseo-relay/SKILL.md) | 通过已授权的 Relay 配对连接其它 Paseo host，默认只读（[SDK 读取](skills/paseo-relay/references/sdk.md)）。 |
+| [`see`](skills/see/SKILL.md) | 通过 S.EE 生成短链、分享文本和文件。 |
+
+**创作与扩展**
+
+| Skill | 什么时候用 |
+| --- | --- |
+| [`i-diagram`](skills/i-diagram/SKILL.md) | 把架构、流程、时序、状态、思维导图或时间线画成单个自包含 SVG，支持明暗主题。 |
+| [`codex-skill-creator`](skills/codex-skill-creator/SKILL.md) | 创建、改进、评测并打包 Codex skills，带成对 eval 和人工审阅。 |
+| [`use-remote-skill`](skills/use-remote-skill/SKILL.md) | 在当前会话临时使用其它仓库的 skill，来源可以是明确地址或 YAML 目录（[配置说明](skills/use-remote-skill/references/configuration.md)）。 |
+
+**外部参考**（仅收藏，未内置）：[`impeccable`](https://github.com/pbakaus/impeccable)，用于前端设计审查与润色；[`ui-ux-pro-max-skill`](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill)，UI/UX 提示词参考。
 
 <details>
-<summary>Skill 来源（可选展开）</summary>
+<summary>Skill 来源</summary>
 
-下表列出了从外部仓库安装/更新的 skills 的来源仓库；“备注”列用于简要说明本仓库对这些 skills 的本地定制（如有）。
-
-| Skill | 来源仓库 | 备注 |
+| Skill | 来源仓库 | 本地改动 |
 | --- | --- | --- |
-| `brainstorming` | [`obra/superpowers`](https://github.com/obra/superpowers) | worktree 操作统一委托给 `worktree-manager`（复制当前 working state）。 |
-| `systematic-debugging` | [`obra/superpowers`](https://github.com/obra/superpowers) | 需要 dedicated worktree 隔离复现时，用 `worktree-manager`。 |
-| `writing-plans` | [`obra/superpowers`](https://github.com/obra/superpowers) | worktree 操作统一委托给 `worktree-manager`（复制当前 working state）。 |
-| `executing-plans` | [`obra/superpowers`](https://github.com/obra/superpowers) |  |
-| `subagent-driven-development` | [`obra/superpowers`](https://github.com/obra/superpowers) |  |
-| `test-driven-development` | [`obra/superpowers`](https://github.com/obra/superpowers) |  |
+| `brainstorming` | [`obra/superpowers`](https://github.com/obra/superpowers) | worktree 操作统一交给 `worktree-manager`（复制当前工作状态）。 |
+| `systematic-debugging` | [`obra/superpowers`](https://github.com/obra/superpowers) | 需要单独 worktree 隔离复现时，用 `worktree-manager`。 |
+| `writing-plans` | [`obra/superpowers`](https://github.com/obra/superpowers) | worktree 操作统一交给 `worktree-manager`（复制当前工作状态）。 |
+| `executing-plans` | [`obra/superpowers`](https://github.com/obra/superpowers) | |
+| `subagent-driven-development` | [`obra/superpowers`](https://github.com/obra/superpowers) | |
+| `test-driven-development` | [`obra/superpowers`](https://github.com/obra/superpowers) | |
 
 </details>
 
-## 规范（Specs）
+## MCP Servers
 
-这里记录本仓库推荐采用的工程规范。表格刻意保持扁平，后续如果要增加新的 spec，直接追加一行即可，不需要调整章节结构。
-
-| 类别 | 适用范围 | 推荐方案 | 简要说明 | 参考 |
-| --- | --- | --- | --- | --- |
-| 项目结构 | Go 服务 / 应用 | [`golang-standards/project-layout`](https://github.com/golang-standards/project-layout) | 适合作为中大型 Go 项目的默认结构参考，常见目录包括 `cmd`、`internal`、`pkg`。如果项目很小，保持简单通常比强行套结构更重要。 | <https://github.com/golang-standards/project-layout> |
-| 项目结构 | 前端应用 | [Feature-Sliced Design (FSD)](https://fsd.how/docs/get-started/overview/) | 通过分层 + 按业务切片组织代码（如 `app`、`pages`、`features`、`entities`、`shared`），让前端代码更容易扩展和协作。 | <https://fsd.how/docs/get-started/overview/> |
-| Lint | 前端 / JS / TS | [Biome](https://biomejs.dev/linter/) | 统一 formatter + linter 的前端工具链，性能快、默认配置也比较稳；建议先采用推荐规则，再按团队约定逐步加严。 | <https://biomejs.dev/linter/> |
-| i18n | React / 前端 | [`react-i18next`](https://github.com/i18next/react-i18next) | React 生态里很常用的国际化方案，基于 `i18next`，支持 hooks / 组件、命名空间、插值和复数规则。 | <https://github.com/i18next/react-i18next> |
-| i18n | Go 服务 / 应用 | [`go-i18n`](https://github.com/nicksnyder/go-i18n) | 通过 bundle + locale 文件管理 Go 项目的多语言文案，支持复数规则、模板变量，以及 CLI 的 extract / merge 工作流。 | <https://github.com/nicksnyder/go-i18n> |
-
-## Scripts
-
-| 脚本 | 说明 | 用法 |
+| 服务 | 用途 | 命令 |
 | --- | --- | --- |
-| [`install-autojump-rs.sh`](scripts/install-autojump-rs.sh) | 一键安装 `autojump-rs`，支持 macOS/Linux，并处理 `bash`/`zsh`/`fish` 的集成与卸载。 | `bash scripts/install-autojump-rs.sh` 或 `bash scripts/install-autojump-rs.sh --uninstall` |
+| [fetcher-mcp](https://www.npmjs.com/package/fetcher-mcp) | 用 Playwright 无头浏览器抓取网页（stdio）。 | `bunx -y fetcher-mcp` |
 
-## Config
+把它加到所用 Agent 的 MCP 配置里即可，通用示例见 [`.mcp.json`](.mcp.json)。
 
-推荐配置：
+## 工程规范
 
-| 配置项 | 文件 | 作用 | 备注 |
+本仓库推荐的默认工程规范，新增规范直接追加一行。
+
+| 领域 | 适用范围 | 推荐方案 | 理由 |
 | --- | --- | --- | --- |
-| Worktrunk “copy from base” hook | `.config/wt.toml`、`scripts/wt-copy-from-base` | Worktrunk 创建新 worktree 时，将 base worktree 的当前工作空间状态复制到新 worktree（而不是得到一个完全干净的 worktree）。 | 方便把 git ignore 的文件（如项目依赖、`.env`、缓存等）快速带到新 worktree 中，提升开发效率。建议搭配 `worktree-manager` skill 使用。 |
+| 项目结构 | Go 服务 / 应用 | [`golang-standards/project-layout`](https://github.com/golang-standards/project-layout) | 适合中大型项目（`cmd`、`internal`、`pkg`）；小项目保持简单更重要。 |
+| 项目结构 | 前端应用 | [Feature-Sliced Design](https://fsd.how/docs/get-started/overview/) | 分层加业务切片（`app`、`pages`、`features`、`entities`、`shared`），易于扩展。 |
+| Lint | 前端 / JS / TS | [Biome](https://biomejs.dev/linter/) | 格式化与 lint 合一、速度快；从推荐规则起步。 |
+| i18n | React | [`react-i18next`](https://github.com/i18next/react-i18next) | i18next 生态的标准选择：hooks、命名空间、插值、复数。 |
+| i18n | Go | [`go-i18n`](https://github.com/nicksnyder/go-i18n) | bundle 加 locale 文件，支持复数、模板变量和 extract/merge CLI。 |
+
+## 脚本与配置
+
+| 项目 | 作用 | 用法 |
+| --- | --- | --- |
+| [`install-autojump-rs.sh`](scripts/install-autojump-rs.sh) | 在 macOS/Linux 安装 `autojump-rs`，并集成 `bash`/`zsh`/`fish`。 | `bash scripts/install-autojump-rs.sh [--uninstall]` |
+| Worktrunk "copy from base" hook | 新建 worktree 时带上 base worktree 的当前状态，包括依赖、`.env`、缓存等被 git 忽略的文件。适合搭配 `worktree-manager`。 | [`.config/wt.toml`](.config/wt.toml)、[`scripts/wt-copy-from-base`](scripts/wt-copy-from-base) |
 
 ## License
 
