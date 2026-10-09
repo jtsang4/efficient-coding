@@ -1,0 +1,17 @@
+{
+  "name": "diffusion-map-skill",
+  "devDependencies": {
+    "@types/bun": "^1.2.22",
+    "axe-core": "^4.14.0",
+    "playwright": "^1.55.0",
+    "typescript": "5"
+  },
+  "private": true,
+  "scripts": {
+    "dm": "bun run ./scripts/dm.ts",
+    "serve": "bun run ./scripts/server.ts",
+    "test": "bun test ./scripts",
+    "visual:capture": "bun run ./evals/visual/capture.ts"
+  },
+  "type": "module"
+}

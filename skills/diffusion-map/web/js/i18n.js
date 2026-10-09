@@ -1,0 +1,197 @@
+// Fixed interface copy in English (default) and Chinese. Anything the agent writes — titles,
+// summaries, lens labels, conversations — is shown as-is and never passes through here.
+
+const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+
+const DICT = {
+  en: {
+    appName: "Diffusion Maps",
+    titleA: "Diffusion",
+    titleB: "Maps",
+    mapsCount: (n) => plural(n, "map", "maps"),
+    lede: "Ink a few pillars, then let the conversation spread them outward. Every node keeps the conversation it came from, so you can always return to it.",
+    noMapsTitle: "No maps yet",
+    noMapsBody: "Invoke the diffusion-map skill in Claude Code or Codex and name a topic to learn or an idea to shape. The first map appears here.",
+    notInked: "Not yet inked",
+    nodes: (n) => plural(n, "node", "nodes"),
+    pillars: (n) => plural(n, "pillar", "pillars"),
+    sessions: (n) => plural(n, "conversation", "conversations"),
+    updated: (t) => `Updated ${t}`,
+    allMaps: "← All maps",
+    replaying: (a, b) => `Replaying · ${a} / ${b} nodes`,
+    loadFailed: (e) => `Could not load this map: ${e}`,
+    emptyMap: "No nodes yet. Keep talking with the agent; once the pillars are set, the ink spreads from here.",
+    canvasLabel: (title) => `${title} diffusion map. Arrow keys move between nodes, F fits the view, plus and minus zoom; the outline lists every node.`,
+    added: (list) => `Added to the map: ${list}`,
+    outline: "Outline",
+    legend: "Legend",
+    fit: "Fit view (F)",
+    legendPillars: "Pillars",
+    legendStatus: "Status",
+    search: "Search nodes  /",
+    searchLabel: "Search nodes (shortcut /)",
+    searchResults: "Search results",
+    noMatches: "No matching nodes",
+    noNodes: "No nodes yet",
+    outlineLabel: "Map outline",
+    play: "Replay how the map grew",
+    pause: "Pause replay",
+    timeline: "Timeline",
+    grewNodes: (n) => `${plural(n, "node", "nodes")} added`,
+    changed: (n) => `${plural(n, "change", "changes")}`,
+    discussed: "Discussed",
+    live: (t) => `Live · ${t}`,
+    replayAt: "Replay",
+    themeAuto: "Theme: follow system",
+    themeDark: "Theme: dark",
+    themeLight: "Theme: light",
+    langLabel: "Language",
+    offline: "The viewer has stopped. Invoke the skill again or run",
+    offlineTail: "then reload this page.",
+    nodeLabel: (t) => `Node: ${t}`,
+    backToNode: "Back to node",
+    branch: "Branch",
+    close: "Close (Esc)",
+    noSummary: "No summary yet. This node was mentioned but not unfolded.",
+    children: "Spreading out",
+    relations: "Relations",
+    relationIn: (other, rel) => [other, rel, "this"],
+    conversations: "Conversations",
+    convCount: (n) => (n ? `${n}` : "None"),
+    noConversations: "No linked conversations.",
+    readAll: (n) => `Read all ${n} conversations in order`,
+    openConversation: (agent, when) => `Read the ${agent} conversation from ${when}`,
+    copyId: "Copy the full session id",
+    copyIdLabel: (id) => `Copy session id ${id}`,
+    copied: "Copied",
+    discussedTimes: (n) => `Discussed ${n === 1 ? "once" : `${n} times`}`,
+    origin: { live: "Original", snapshot: "Local snapshot", missing: "Unavailable" },
+    readFailed: (e) => `Could not read: ${e}`,
+    reading: "Reading the conversation…",
+    gone: "Both the original record and the snapshot are gone.",
+    expand: (n) => `Show ${plural(n, "other message", "other messages")}`,
+    relevant: (t) => `About “${t}”`,
+    toolCalls: (n) => plural(n, "tool call", "tool calls"),
+    you: "You",
+    deleteMap: (t) => `Delete “${t}”`,
+    deleteTitle: (t) => `Delete “${t}”?`,
+    deleteBody: (nodes, sessions, size) => `This removes ${nodes}, the links to ${sessions} and the local snapshots (${size}). It cannot be undone.`,
+    deleteKeep: "The original Claude Code and Codex conversation records are not touched.",
+    cancel: "Cancel",
+    confirmDelete: "Delete map",
+    deleting: "Deleting…",
+    deleteFailed: (e) => `Could not delete: ${e}`,
+    mapDeleted: "This map has been deleted.",
+    now: "just now",
+  },
+  zh: {
+    appName: "扩散图谱",
+    titleA: "扩散",
+    titleB: "图谱",
+    mapsCount: (n) => `${n} 张图谱`,
+    lede: "从几个支柱落墨，随着对话一圈圈晕开。每个节点都连着当时的那段对话，随时可以回到原处。",
+    noMapsTitle: "还没有图谱",
+    noMapsBody: "在 Claude Code 或 Codex 里调用 diffusion-map skill，说出你想学习或构思的主题，第一张图谱就会出现在这里。",
+    notInked: "尚未落墨",
+    nodes: (n) => `${n} 个节点`,
+    pillars: (n) => `${n} 个支柱`,
+    sessions: (n) => `${n} 段对话`,
+    updated: (t) => `更新于 ${t}`,
+    allMaps: "← 全部图谱",
+    replaying: (a, b) => `回放中 · ${a} / ${b} 个节点`,
+    loadFailed: (e) => `无法加载这张图谱：${e}`,
+    emptyMap: "这张图谱还没有节点。继续和 Agent 对话，支柱确立后会从这里晕开。",
+    canvasLabel: (title) => `${title} 扩散图谱。方向键在节点之间移动，F 适配视图，加减号缩放；也可以打开大纲浏览。`,
+    added: (list) => `图谱新增：${list}`,
+    outline: "大纲",
+    legend: "图例",
+    fit: "适配视图 (F)",
+    legendPillars: "支柱",
+    legendStatus: "状态",
+    search: "搜索节点  /",
+    searchLabel: "搜索节点（快捷键 /）",
+    searchResults: "搜索结果",
+    noMatches: "没有匹配的节点",
+    noNodes: "还没有节点",
+    outlineLabel: "图谱大纲",
+    play: "回放生长过程",
+    pause: "暂停回放",
+    timeline: "时间轴",
+    grewNodes: (n) => `新增 ${n} 个节点`,
+    changed: (n) => `调整 ${n} 处`,
+    discussed: "讨论",
+    live: (t) => `实时 · ${t}`,
+    replayAt: "回放",
+    themeAuto: "主题：跟随系统",
+    themeDark: "主题：深色",
+    themeLight: "主题：浅色",
+    langLabel: "语言",
+    offline: "服务已停止。下次调用 skill 或运行",
+    offlineTail: "后刷新页面即可。",
+    nodeLabel: (t) => `节点：${t}`,
+    backToNode: "返回节点",
+    branch: "所在分支",
+    close: "关闭 (Esc)",
+    noSummary: "还没有摘要。这个节点刚被提到，尚未展开。",
+    children: "向外扩散",
+    relations: "关联",
+    relationIn: (other, rel) => ["被", other, rel],
+    conversations: "对话",
+    convCount: (n) => (n ? `${n} 段` : "暂无"),
+    noConversations: "没有关联的对话。",
+    readAll: (n) => `按时间顺序阅读全部 ${n} 段对话`,
+    openConversation: (agent, when) => `阅读 ${agent} 对话，${when}`,
+    copyId: "复制完整会话 id",
+    copyIdLabel: (id) => `复制会话 id ${id}`,
+    copied: "已复制",
+    discussedTimes: (n) => `讨论 ${n} 次`,
+    origin: { live: "原始记录", snapshot: "本地快照", missing: "已不可用" },
+    readFailed: (e) => `读取失败：${e}`,
+    reading: "正在读取对话…",
+    gone: "原始记录和快照都已不可用。",
+    expand: (n) => `展开 ${n} 条其他消息`,
+    relevant: (t) => `与「${t}」相关`,
+    toolCalls: (n) => `${n} 次工具调用`,
+    you: "你",
+    deleteMap: (t) => `删除「${t}」`,
+    deleteTitle: (t) => `删除「${t}」？`,
+    deleteBody: (nodes, sessions, size) => `将删除 ${nodes}、与 ${sessions}的关联，以及本地快照（${size}）。删除后无法恢复。`,
+    deleteKeep: "Claude Code 和 Codex 自己的原始对话记录不受影响。",
+    cancel: "取消",
+    confirmDelete: "删除图谱",
+    deleting: "正在删除…",
+    deleteFailed: (e) => `删除失败：${e}`,
+    mapDeleted: "这张图谱已被删除。",
+    now: "刚刚",
+  },
+};
+
+const read = () => {
+  try {
+    return localStorage.getItem("dm-lang") === "zh" ? "zh" : "en";
+  } catch {
+    return "en";
+  }
+};
+
+let lang = read();
+document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
+
+export const getLang = () => lang;
+
+/** Look up fixed copy; entries that are functions take the given arguments. */
+export function t(key, ...args) {
+  const value = DICT[lang][key];
+  return typeof value === "function" ? value(...args) : value;
+}
+
+export function setLang(next) {
+  lang = next;
+  try {
+    localStorage.setItem("dm-lang", next);
+  } catch {}
+  document.documentElement.lang = next === "zh" ? "zh-CN" : "en";
+  window.dispatchEvent(new Event("dm-lang"));
+}
+
+export const onLangChange = (fn) => (window.addEventListener("dm-lang", fn), () => window.removeEventListener("dm-lang", fn));

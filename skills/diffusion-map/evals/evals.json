@@ -1,0 +1,66 @@
+{
+  "skill_name": "diffusion-map",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "/diffusion-map 我想系统学习 Rust 的所有权和借用，我写过几年 Go。",
+      "expected_output": "Agent 提议一份学习用的 lens 和 3–7 个支柱，得到确认后新建图谱、写入支柱并启动本地网页。",
+      "files": [],
+      "expectations": [
+        "先执行 dm maps 查看是否已有相关图谱",
+        "提议的 lens 包含 pillar、kinds、statuses（每个都有 tone）和 relations",
+        "支柱数量在 3–7 个之间，并逐个说明为什么是支柱",
+        "在用户确认后才执行 dm new 和写入支柱的 dm apply",
+        "执行 dm serve 并把网址告诉用户",
+        "没有执行 bun install 或任何构建命令"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "（在已有 rust-ownership 图谱的新会话中）/diffusion-map 继续学 Rust，上次学到哪了？",
+      "expected_output": "Agent 读取已有图谱的大纲，概括进展和 frontier，给出 2–3 个继续的方向，而不是新建图谱。",
+      "files": [],
+      "expectations": [
+        "执行 dm maps 后识别出 rust-ownership 并执行 dm show -m rust-ownership",
+        "回答中概括已掌握的部分和尚未展开的 frontier 节点",
+        "给出 2–3 个具体的继续方向",
+        "没有新建重复的图谱"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "（图谱已建立、正在学习借用时）为什么先借用、后修改，编译器有时候不报错？",
+      "expected_output": "Agent 正常讲解 NLL，并在同一轮里用一次 dm apply 把新内容长进图谱，对话里最多用一句话提及。",
+      "files": [],
+      "expectations": [
+        "回答本身完整讲清 NLL，质量不因记账打折",
+        "用一次 dm apply 提交本轮所有变化",
+        "新节点挂在借用相关的父节点下，并带有可单独阅读的摘要",
+        "只提到但没有展开的概念以 open 语气的状态加入",
+        "对话中关于图谱更新的说明不超过一句话"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "（图谱中『引用』与『借用规则』讲的是同一件事）我觉得『引用』和『借用规则』说的是一回事吧？",
+      "expected_output": "Agent 认同或澄清后，用 merge 合并重复节点而不是新增或删除，会话关联随之保留。",
+      "files": [],
+      "expectations": [
+        "使用 merge 操作把重复节点并入另一个",
+        "没有用 remove --cascade 删除带有会话关联的子树",
+        "dm show 中被并入的节点消失，目标节点保留了会话关联"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "/diffusion-map 帮我构思一个本地优先的笔记同步工具。",
+      "expected_output": "Agent 为构思场景设计一份与学习不同的 lens（例如问题/方案/风险/决定，含 muted 的否决状态），而不是套用固定模式。",
+      "files": [],
+      "expectations": [
+        "lens 的节点类型和状态是针对构思设计的，而不是学习用的概念/已掌握",
+        "状态里包含 tone 为 muted 的否决类状态",
+        "后续否决某个方案时用 update 改状态并在摘要写明原因，而不是删除节点"
+      ]
+    }
+  ]
+}

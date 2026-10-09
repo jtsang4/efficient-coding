@@ -1,0 +1,6 @@
+interface:
+  display_name: "diffusion-map"
+  short_description: "从几个支柱出发，随对话生长的扩散图谱，附本地可视化与会话回溯"
+  default_prompt: "Use $diffusion-map to explore this topic as a diffusion map."
+policy:
+  allow_implicit_invocation: false
