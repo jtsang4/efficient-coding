@@ -7,8 +7,10 @@ import { join } from "node:path";
 import { chromium, type Page } from "playwright";
 
 const dir = import.meta.dir;
-const out = join(dir, "out");
-const home = join(out, "home");
+// DM_VIEW=mind|radial picks the map view for the whole run; each view gets its own output folder.
+const VIEW = process.env.DM_VIEW ?? "mind";
+const out = join(dir, "out", VIEW);
+const home = join(dir, "out", `home-${VIEW}`);
 mkdirSync(out, { recursive: true });
 
 const only = process.argv.includes("--only") ? new Set(process.argv[process.argv.indexOf("--only") + 1]!.split(",")) : null;
@@ -45,6 +47,7 @@ async function open(name: string, opts: { width?: number; height?: number; dark?
     colorScheme: opts.dark ? "dark" : "light",
     reducedMotion: opts.reduced ? "reduce" : "no-preference",
   });
+  await ctx.addInitScript((v) => localStorage.setItem("dm-view", v), VIEW);
   const page = await ctx.newPage();
   page.on("pageerror", (e) => ((report[`${name}:errors`] ??= []) as string[]).push(String(e)));
   page.on("console", (m) => m.type() === "error" && ((report[`${name}:console`] ??= []) as string[]).push(m.text()));

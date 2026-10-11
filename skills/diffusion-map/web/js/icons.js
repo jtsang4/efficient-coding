@@ -18,4 +18,8 @@ export const IconGlobe = () =>
 export const IconCheck = () => html`<${Svg}><path d="m5 12.5 4.5 4.5L19 7.5" /><//>`;
 export const IconTrash = () =>
   html`<${Svg}><path d="M4.5 7h15M10 7V4.8h4V7M6.5 7l.9 12.2h9.2L17.5 7M10.2 10.5v5.5M13.8 10.5v5.5" /><//>`;
+export const IconMindMap = () =>
+  html`<${Svg}><circle cx="12" cy="12" r="1.8" fill="currentColor" /><path d="M13.8 12c2 0 2-5 4.2-5M13.8 12c2 0 2 5 4.2 5M10.2 12c-2 0-2-5-4.2-5M10.2 12c-2 0-2 5-4.2 5M18 7h2.5M18 17h2.5M6 7H3.5M6 17H3.5" /><//>`;
+export const IconRadial = () =>
+  html`<${Svg}><circle cx="12" cy="12" r="1.8" fill="currentColor" /><circle cx="12" cy="12" r="8" stroke-dasharray="2 3" /><path d="M12 10.2V4M13.6 12.9l5.3 3.1M10.4 12.9l-5.3 3.1" /><//>`;
 export const IconBack = () => html`<${Svg}><path d="M14.5 6 8.5 12l6 6" /><//>`;

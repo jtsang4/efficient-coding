@@ -9,7 +9,7 @@ const dir = import.meta.dir;
 const outDir = join(dir, "../../../../docs/images/diffusion-map");
 mkdirSync(outDir, { recursive: true });
 
-type Shot = { name: string; hash: string; dark?: boolean; then?: (p: import("playwright").Page) => Promise<void> };
+type Shot = { name: string; hash: string; dark?: boolean; view?: "mind" | "radial"; then?: (p: import("playwright").Page) => Promise<void> };
 
 const LANGS: { lang: "en" | "zh"; fixtures: string; drop: string[]; shots: Shot[] }[] = [
   {
@@ -20,6 +20,7 @@ const LANGS: { lang: "en" | "zh"; fixtures: string; drop: string[]; shots: Shot[
       { name: "map", hash: "#/map/rust-ownership" },
       { name: "conversation", hash: "#/map/rust-ownership/node/mutexguard", then: (p) => p.getByText("Read all 2 conversations in order").click() },
       { name: "ideation-dark", hash: "#/map/local-first-notes/node/crdt", dark: true },
+      { name: "radial", hash: "#/map/rust-ownership", view: "radial" },
       { name: "home", hash: "#/" },
     ],
   },
@@ -31,6 +32,7 @@ const LANGS: { lang: "en" | "zh"; fixtures: string; drop: string[]; shots: Shot[
       { name: "map", hash: "#/map/rust-ownership" },
       { name: "conversation", hash: "#/map/rust-ownership/node/mutexguard-raii", then: (p) => p.getByText("按时间顺序阅读全部 2 段对话").click() },
       { name: "ideation-dark", hash: "#/map/local-first-notes/node/crdt", dark: true },
+      { name: "radial", hash: "#/map/rust-ownership", view: "radial" },
       { name: "home", hash: "#/" },
     ],
   },
@@ -51,7 +53,7 @@ for (const { lang, fixtures, drop, shots } of LANGS) {
 
   for (const shot of shots) {
     const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2, colorScheme: shot.dark ? "dark" : "light" });
-    await ctx.addInitScript((l) => localStorage.setItem("dm-lang", l), lang);
+    await ctx.addInitScript(({ l, v }) => (localStorage.setItem("dm-lang", l), localStorage.setItem("dm-view", v)), { l: lang, v: shot.view ?? "mind" });
     const page = await ctx.newPage();
     await page.goto(base + "/" + shot.hash);
     await page.waitForFunction(() => (window as any).__dmReady && document.fonts.status === "loaded");

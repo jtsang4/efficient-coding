@@ -2,7 +2,7 @@ import { html } from "htm/preact";
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { NotFound, fetchMap, onMapChange } from "./api.js";
 import { AGENT_LABEL, formatDate, formatDateTime, lensLabel, relativeTime, toneOf } from "./format.js";
-import { IconFit, IconLegend, IconOutline, IconPause, IconPlay, IconSearch } from "./icons.js";
+import { IconFit, IconLegend, IconMindMap, IconOutline, IconPause, IconPlay, IconRadial, IconSearch } from "./icons.js";
 import { byCreation, pillarsOf } from "./layout.js";
 import { plainText } from "./markdown.js";
 import { NodePanel } from "./panel.js";
@@ -24,6 +24,8 @@ export function MapView({ slug, nodeId }) {
   const [showLegend, setShowLegend] = useState(() => localStorage.getItem("dm-legend") === "1");
   const [announce, setAnnounce] = useState("");
   const [panelWide, setPanelWide] = useState(false);
+  // The mind map is the default reading view; the radial diffusion view is one click away.
+  const [view, setView] = useState(() => (localStorage.getItem("dm-view") === "radial" ? "radial" : "mind"));
   const canvasRef = useRef(null);
   const renderer = useRef(null);
   const theme = useTheme();
@@ -65,12 +67,17 @@ export function MapView({ slug, nodeId }) {
 
   // ---------- renderer ----------
   useEffect(() => {
-    const r = new Renderer(canvasRef.current);
+    const r = new Renderer(canvasRef.current, { view });
     renderer.current = r;
     window.__dm = r; // used by the visual review harness
     r.onSelect = (id) => navigate(mapHash(slug, id));
     r.onHover = (id, x, y) => setTip(id ? { id, x, y } : null);
-    const redraw = () => r.kick();
+    // Mind-map columns depend on measured label widths: re-measure once web fonts arrive.
+    const redraw = () => {
+      if (r.view !== "mind" || !r.lastInput) return r.kick();
+      r.setGraph(r.lastInput, { ripple: false });
+      if (!r.userMoved) r.fit(false);
+    };
     document.fonts?.addEventListener("loadingdone", redraw);
     return () => {
       r.destroy();
@@ -86,6 +93,12 @@ export function MapView({ slug, nodeId }) {
   }, [shown]);
 
   useEffect(() => renderer.current?.setTheme(theme), [theme]);
+  useEffect(() => {
+    renderer.current?.setView(view);
+    try {
+      localStorage.setItem("dm-view", view);
+    } catch {}
+  }, [view]);
 
   // Keep canvas labels out from under the page chrome.
   useEffect(() => {
@@ -232,6 +245,9 @@ export function MapView({ slug, nodeId }) {
       ${shown && html`<${Search} map=${shown} slug=${slug} onHighlight=${(ids) => renderer.current?.setHighlight(ids)} />`}
       <button class="icon-btn" aria-pressed=${showOutline} aria-label=${t("outline")} title=${t("outline")} onClick=${() => setShowOutline((v) => !v)}><${IconOutline} /></button>
       <button class="icon-btn" aria-pressed=${showLegend} aria-label=${t("legend")} title=${t("legend")} onClick=${() => setShowLegend((v) => (localStorage.setItem("dm-legend", v ? "0" : "1"), !v))}><${IconLegend} /></button>
+      <button class="icon-btn" aria-label=${t(view === "mind" ? "viewRadial" : "viewMind")} title=${t(view === "mind" ? "viewRadial" : "viewMind")} onClick=${() => setView((v) => (v === "mind" ? "radial" : "mind"))}>
+        ${view === "mind" ? html`<${IconRadial} />` : html`<${IconMindMap} />`}
+      </button>
       <button class="icon-btn" aria-label=${t("fit")} title=${t("fit")} onClick=${() => renderer.current?.fit()}><${IconFit} /></button>
       <${LangButton} />
       <${ThemeButton} />
@@ -465,7 +481,10 @@ function Timeline({ batches, index, playing, updatedAt, onScrub, onPlay, theme }
       <div class="track-fill" style=${{ width: `${pos(cur)}%` }}></div>
       ${batches.map((b, i) => {
         // Each moment of growth is a drop of ink: size by how much grew, tint by where it grew.
-        const size = Math.min(28, 6 + Math.sqrt(b.added) * 4.2 + Math.sqrt(b.changed) * 1.6);
+        // Never let neighbouring drops merge: cap each by the room to its nearest neighbour.
+        const trackPx = Math.min(Math.max(140, (n - 1) * 110), window.innerWidth - (window.innerWidth <= 820 ? 230 : 330));
+        const room = Math.min(i > 0 ? pos(i) - pos(i - 1) : 100, i < n - 1 ? pos(i + 1) - pos(i) : 100) * trackPx / 100;
+        const size = Math.max(5, Math.min(28, room * 0.9, 6 + Math.sqrt(b.added) * 4.2 + Math.sqrt(b.changed) * 1.6));
         const color = b.pillar === null ? "var(--ink-3)" : pigmentOf(b.pillar, theme);
         const what = b.added ? t("grewNodes", b.added) : b.changed ? t("changed", b.changed) : t("discussed");
         return html`<span

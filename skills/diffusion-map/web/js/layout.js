@@ -152,3 +152,91 @@ function relax(sim, ticks) {
     }
   }
 }
+
+// ---------- mind map ----------
+
+const ROW = 30; // vertical room for one leaf
+const PILLAR_GAP = 28; // extra air between pillar subtrees
+const GAP_X = 44; // from the end of a label to the next column's dot
+const ROOT_X = 110; // pillars sit this far from the centre
+
+/**
+ * Two-sided mind map: pillars split left and right of the centre, each
+ * subtree grows horizontally, children stacked one row apart. Labels sit at the outer end of
+ * each node and the next generation starts after them, so names can never collide.
+ * `widths` maps node id → label width in world units; `oneSided` puts everything on the right.
+ */
+export function mindLayout(nodes, widths, { oneSided = false } = {}) {
+  const byId = new Map(nodes.map((n) => [n.id, n]));
+  const children = new Map();
+  for (const n of nodes) {
+    const key = n.parentId && byId.has(n.parentId) ? n.parentId : null;
+    if (!children.has(key)) children.set(key, []);
+    children.get(key).push(n);
+  }
+  for (const list of children.values()) list.sort(byCreation);
+  const roots = children.get(null) ?? [];
+
+  const height = new Map();
+  const measure = (n) => {
+    const kids = children.get(n.id) ?? [];
+    const h = kids.length ? kids.reduce((s, k) => s + measure(k), 0) : ROW;
+    height.set(n.id, h);
+    return h;
+  };
+  roots.forEach(measure);
+
+  // A pillar takes the lighter side as it stood when the pillar was created: count each earlier
+  // pillar's nodes created before this one. Later growth never changes that past decision, so a
+  // pillar keeps its side forever (also during replay) while the two sides stay balanced.
+  const pillarOf = new Map();
+  const rootOf = (n) => {
+    if (pillarOf.has(n.id)) return pillarOf.get(n.id);
+    const p = n.parentId && byId.has(n.parentId) ? rootOf(byId.get(n.parentId)) : n.id;
+    pillarOf.set(n.id, p);
+    return p;
+  };
+  nodes.forEach(rootOf);
+  const sides = { 1: [], [-1]: [] };
+  const total = { 1: 0, [-1]: 0 };
+  const sideOf = new Map();
+  for (const r of roots) {
+    const weight = { 1: 0, [-1]: 0 };
+    for (const n of nodes) {
+      const side = sideOf.get(pillarOf.get(n.id));
+      // "No later than": pillars inked in the same batch count each other, so they alternate.
+      if (side && n.createdAt <= r.createdAt) weight[side] += 1;
+    }
+    const side = oneSided || weight[1] <= weight[-1] ? 1 : -1;
+    sideOf.set(r.id, side);
+    sides[side].push(r);
+    total[side] += height.get(r.id) + PILLAR_GAP;
+  }
+
+  const out = new Map();
+  const place = (n, x, top, side, depth, pillarIndex) => {
+    const r = nodeRadius(depth, n.sessions.length);
+    const kids = children.get(n.id) ?? [];
+    const nextX = x + side * (r + 8 + (widths.get(n.id) ?? 60) + GAP_X);
+    let y;
+    if (kids.length) {
+      let cursor = top;
+      const ys = kids.map((k) => {
+        const ky = place(k, nextX, cursor, side, depth + 1, pillarIndex);
+        cursor += height.get(k.id);
+        return ky;
+      });
+      y = (ys[0] + ys.at(-1)) / 2;
+    } else y = top + ROW / 2;
+    out.set(n.id, { id: n.id, x, y, depth, pillarIndex, radius: r, angle: side > 0 ? 0 : Math.PI, side });
+    return y;
+  };
+  for (const side of [1, -1]) {
+    let top = -(total[side] - PILLAR_GAP) / 2;
+    for (const r of sides[side]) {
+      place(r, side * ROOT_X, top, side, 0, roots.indexOf(r));
+      top += height.get(r.id) + PILLAR_GAP;
+    }
+  }
+  return { nodes: out, rings: [], pillarRing: 1, mind: true };
+}

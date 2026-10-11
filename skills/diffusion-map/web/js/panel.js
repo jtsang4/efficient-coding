@@ -88,7 +88,7 @@ export function NodePanel({ slug, map, nodeId, theme, wide, onWide, onSelect, on
                   return html`<li key=${e.id}>
                     <button onClick=${() => onSelect(other.id)}>
                       <span class="ll-title">
-                        ${outgoing ? html`<span class="ll-rel">${rel}</span> ${other.title}` : t("relationIn", other.title, rel).map((part, i) => (part === other.title ? html` ${part} ` : html`<span class="ll-rel" key=${i}>${part}</span>`))}
+                        ${outgoing ? html`<span class="ll-rel">${rel}</span> ${other.title}` : t("relationIn", other.title, rel).map((part, i) => html`${i > 0 ? " " : ""}${part === other.title ? part : html`<span class="ll-rel" key=${i}>${part}</span>`}`)}
                         ${e.label && html`<span class="ll-label"> · ${e.label}</span>`}
                       </span>
                       <span class="ll-arrow" aria-hidden="true">→</span>
