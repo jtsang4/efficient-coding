@@ -14,9 +14,9 @@
 
 ## Featured: Diffusion Maps
 
-Learn a field or shape an idea across many conversations. The agent starts from a few **pillars**, then grows and restructures the map as you talk. Every node remembers the Claude Code or Codex conversation it came from, and a local viewer draws it all like ink spreading on paper.
+Learn a field or shape an idea across many conversations. The agent starts from a few **pillars**, then grows and restructures the map as you talk. Every node remembers the Claude Code or Codex conversation it came from, and a local viewer draws it all in ink on paper.
 
-<p align="center"><img src="docs/images/diffusion-map/en-map.jpg" alt="A diffusion map about Rust ownership: five pillars with their branches, and a timeline of ink drops along the bottom" width="100%"></p>
+<p align="center"><img src="docs/images/diffusion-map/en-map.jpg" alt="A map about Rust ownership as a two-sided mind map: five pillars with their branches, and a timeline of ink drops along the bottom" width="100%"></p>
 
 <table>
   <tr>
@@ -27,10 +27,19 @@ Learn a field or shape an idea across many conversations. The agent starts from 
     <td><sub><b>Back to the source.</b> Open a node to reread the conversations behind it, with the relevant turns marked.</sub></td>
     <td><sub><b>Not just learning.</b> Each map defines its own node kinds and statuses, so it can also shape a project or weigh a decision.</sub></td>
   </tr>
+  <tr>
+    <td width="50%"><img src="docs/images/diffusion-map/en-radial.jpg" alt="The same Rust map in the diffusion view: pillars on a ring with branches spreading outward"></td>
+    <td width="50%"><img src="docs/images/diffusion-map/en-home.jpg" alt="The index of maps, each card with a live thumbnail"></td>
+  </tr>
+  <tr>
+    <td><sub><b>Two views.</b> Read it as a mind map (default) or switch to the diffusion view for the overall shape.</sub></td>
+    <td><sub><b>All your maps.</b> Each card shows a live thumbnail; delete the ones you no longer need.</sub></td>
+  </tr>
 </table>
 
 - **Grows with the conversation.** The agent decides when to add, merge, move or retire nodes, and asks only when unsure.
-- **Picks up where you left off.** Maps live in `~/.efficient-coding/diffusion/`. Continue in any later session, in either agent, and delete the ones you no longer need from the index page.
+- **Picks up where you left off.** Maps live in `~/.efficient-coding/diffusion/`. Continue in any later session, in either agent.
+- **Readable at any size.** The mind map folds deeper levels into "+N" so names stay legible; click to unfold.
 - **Replayable.** The timeline replays how the map grew, one ink drop per moment of growth.
 - **Zero setup.** Needs only Bun: no install, no build. The viewer stops by itself when idle.
 

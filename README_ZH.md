@@ -14,9 +14,9 @@
 
 ## 精选：扩散图谱
 
-跨越多次对话学一个领域，或者打磨一个构思。Agent 先确立几个**支柱**，再随着对话把图谱向外生长、重组。每个节点都记得它来自哪段 Claude Code 或 Codex 对话，本地网页把这一切画成在宣纸上晕开的墨迹。
+跨越多次对话学一个领域，或者打磨一个构思。Agent 先确立几个**支柱**，再随着对话把图谱向外生长、重组。每个节点都记得它来自哪段 Claude Code 或 Codex 对话，本地网页用宣纸与墨迹的风格把这一切画出来。
 
-<p align="center"><img src="docs/images/diffusion-map/zh-map.jpg" alt="一张关于 Rust 所有权的扩散图谱：五个支柱和它们的分支，底部是由墨滴组成的时间轴" width="100%"></p>
+<p align="center"><img src="docs/images/diffusion-map/zh-map.jpg" alt="一张关于 Rust 所有权的双侧思维导图：五个支柱和它们的分支，底部是由墨滴组成的时间轴" width="100%"></p>
 
 <table>
   <tr>
@@ -27,10 +27,19 @@
     <td><sub><b>回到源头。</b>点开节点，就能重读它背后的对话，相关的轮次已经标出。</sub></td>
     <td><sub><b>不只是学习。</b>每张图自己定义节点类型和状态，也能用来构思项目、权衡决策。</sub></td>
   </tr>
+  <tr>
+    <td width="50%"><img src="docs/images/diffusion-map/zh-radial.jpg" alt="同一张 Rust 图谱的扩散视图：支柱排成一圈，分支向外晕开"></td>
+    <td width="50%"><img src="docs/images/diffusion-map/zh-home.jpg" alt="图谱列表，每张卡片带实时缩略图"></td>
+  </tr>
+  <tr>
+    <td><sub><b>两种视图。</b>默认按思维导图阅读，也可以切换到扩散视图看整体形状。</sub></td>
+    <td><sub><b>所有图谱。</b>每张卡片都有实时缩略图，不再需要的可以直接删除。</sub></td>
+  </tr>
 </table>
 
 - **随对话生长**：何时新增、合并、移动或搁置节点，由 Agent 自己判断，拿不准时才问你。
-- **随时接着来**：图谱保存在 `~/.efficient-coding/diffusion/`，之后任何一次会话、两种 Agent 都能继续；不再需要的图谱可以在列表页直接删除。
+- **随时接着来**：图谱保存在 `~/.efficient-coding/diffusion/`，之后任何一次会话、两种 Agent 都能继续。
+- **多大都看得清**：思维导图会把更深的层级折叠成"+N"，保证名字始终可读，点击即可展开。
 - **可以回放**：时间轴按真实时间回放图谱的生长，每一次生长是一滴墨。
 - **零配置**：只需要 Bun，不用装依赖、也不用构建；网页服务闲置后自动退出。
 
