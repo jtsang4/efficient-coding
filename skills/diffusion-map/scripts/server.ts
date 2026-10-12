@@ -7,13 +7,14 @@ import { existsSync, mkdirSync, readFileSync, rmSync, statSync, watch, writeFile
 import { extname, join, normalize, sep } from "node:path";
 import { parseArgs } from "node:util";
 import { type AgentKind, type MapEvent, type MapState, fold, toSnapshot } from "./lib/model";
-import { APP_ID, DEFAULT_PORT, readServerInfo, serverInfoPath } from "./lib/server-info";
+import { APP_ID, DEFAULT_HOST, DEFAULT_PORT, readServerInfo, serverInfoPath } from "./lib/server-info";
 import { AGENTS } from "./lib/session";
 import { deleteMap, listMapSlugs, loadMap, mapSize, mapsDir, readEvents, transcriptsDir } from "./lib/store";
 import { parseTranscript, relevantRanges } from "./lib/transcripts/parse";
 import { syncTranscript } from "./lib/transcripts/sync";
 
-const { values } = parseArgs({ options: { port: { type: "string" }, "idle-ms": { type: "string" } } });
+const { values } = parseArgs({ options: { port: { type: "string" }, host: { type: "string" }, "idle-ms": { type: "string" } } });
+const host = values.host ?? DEFAULT_HOST;
 const preferredPort = Number(values.port ?? DEFAULT_PORT);
 const idleMs = Number(values["idle-ms"] ?? 30 * 60_000);
 const webRoot = join(import.meta.dir, "..", "web");
@@ -171,7 +172,7 @@ const server = (() => {
   for (let port = preferredPort; port < preferredPort + 20; port++) {
     try {
       return Bun.serve({
-        hostname: "127.0.0.1",
+        hostname: host,
         port,
         idleTimeout: 60,
         fetch(req) {
@@ -197,7 +198,7 @@ const server = (() => {
   throw new Error(`no free port in ${preferredPort}-${preferredPort + 19}`);
 })();
 
-writeFileSync(serverInfoPath(), JSON.stringify({ pid: process.pid, port: server.port, startedAt: new Date().toISOString(), idleMs }));
+writeFileSync(serverInfoPath(), JSON.stringify({ pid: process.pid, port: server.port, host, startedAt: new Date().toISOString(), idleMs }));
 
 function shutdown() {
   if (readServerInfo()?.pid === process.pid) rmSync(serverInfoPath(), { force: true });

@@ -18,7 +18,7 @@
 | `dm log -m <slug> [-n 10]` | 最近的批次 |
 | `dm undo -m <slug>` | 撤销最近一个批次 |
 | `dm export -m <slug> [--format md\|json]` | 导出 |
-| `dm serve [-m <slug>] [--idle 30m]` | 启动或复用本地网页并打印网址；超过 idle 时长没有访问会自动退出 |
+| `dm serve [-m <slug>] [--idle 30m] [--host <地址>]` | 启动或复用网页服务并打印网址；默认监听所有网卡（`0.0.0.0`），同一网络的其他设备也能访问，`--host 127.0.0.1` 只限本机；超过 idle 时长没有访问会自动退出 |
 | `dm stop` | 停止网页服务 |
 
 ## apply：一轮的所有改动一次提交

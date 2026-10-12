@@ -7,7 +7,7 @@ import { join } from "node:path";
 import { parseArgs } from "node:util";
 import { type Actor, toSnapshot } from "./lib/model";
 import { exportMarkdown, outline } from "./lib/outline";
-import { DEFAULT_PORT, healthCheck, parseDuration, readServerInfo, serverInfoPath } from "./lib/server-info";
+import { DEFAULT_HOST, DEFAULT_PORT, healthCheck, parseDuration, readServerInfo, serverInfoPath, viewerUrls } from "./lib/server-info";
 import { detectActor } from "./lib/session";
 import { type ApplyResult, type Op, UserError, applyOps, createMap, deleteMap, listMapSlugs, loadMap, mapSize, readEvents, transcriptsDir, undoLast, validateLens } from "./lib/store";
 import { syncTranscript } from "./lib/transcripts/sync";
@@ -263,16 +263,22 @@ const commands: Record<string, Command> = {
     },
   },
   serve: {
-    usage: "serve [-m <slug>] [--port <port>] [--idle <duration>]",
-    summary: "start the local viewer in the background (reuses a running one) and print its URL",
-    options: { map: { type: "string", short: "m" }, port: { type: "string" }, idle: { type: "string" } },
+    usage: "serve [-m <slug>] [--port <port>] [--host <address>] [--idle <duration>]",
+    summary: "start the viewer in the background (reuses a running one) and print its URLs; listens on all interfaces unless --host 127.0.0.1",
+    options: { map: { type: "string", short: "m" }, port: { type: "string" }, host: { type: "string" }, idle: { type: "string" } },
     async run(v) {
       const slug = str(v, "map");
       const path = slug ? `/#/map/${encodeURIComponent(slug)}` : "/";
       const running = readServerInfo();
-      if (running && (await healthCheck(running.port))) return console.log(`viewer running: http://127.0.0.1:${running.port}${path}`);
+      const show = (label: string, h: string, port: number, tail = "") => {
+        const [local, ...lan] = viewerUrls(h, port, path);
+        console.log(`viewer ${label}: ${local}${tail}`);
+        for (const url of lan) console.log(`  on your network: ${url}`);
+      };
+      if (running && (await healthCheck(running.port))) return show("running", running.host ?? "127.0.0.1", running.port);
       const idle = str(v, "idle") ?? "30m";
-      const child = spawn(process.execPath, [join(import.meta.dir, "server.ts"), "--port", str(v, "port") ?? String(DEFAULT_PORT), "--idle-ms", String(parseDuration(idle))], {
+      const host = str(v, "host") ?? DEFAULT_HOST;
+      const child = spawn(process.execPath, [join(import.meta.dir, "server.ts"), "--port", str(v, "port") ?? String(DEFAULT_PORT), "--host", host, "--idle-ms", String(parseDuration(idle))], {
         detached: true,
         stdio: "ignore",
         env: process.env,
@@ -282,7 +288,7 @@ const commands: Record<string, Command> = {
         await Bun.sleep(100);
         const info = readServerInfo();
         if (info && info.pid === child.pid && (await healthCheck(info.port)))
-          return console.log(`viewer started: http://127.0.0.1:${info.port}${path}  (exits after ${idle} without visits)`);
+          return show("started", host, info.port, `  (exits after ${idle} without visits)`);
       }
       throw new UserError("viewer did not start within 10s");
     },
