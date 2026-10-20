@@ -62,6 +62,7 @@ Install any skill with `bunx skills add https://github.com/jtsang4/efficient-cod
 | [`problem-framing`](skills/problem-framing/SKILL.md) | A solution keeps growing exceptions or a discussion won't converge; test whether the problem itself is framed wrong. |
 | [`agent-native-redesign`](skills/agent-native-redesign/SKILL.md) | You want to rethink a project or process assuming abundant agent and token budgets. |
 | [`prove-it`](skills/prove-it/SKILL.md) | An idea sounds feasible but is unproven; freeze pass/kill criteria, then prove or refute it with runnable evidence. |
+| [`raise-ambition`](skills/raise-ambition/SKILL.md) | A task or result feels too modest; push it toward the outcome behind it, expert-grade depth, or other fields, and check it with something other than the model's own judgment. Invoke it explicitly; it never triggers on its own. Based on Felix Rieseberg's [essay](https://felixrieseberg.com/how-to-be-more-ambitious-a-tutorial-for-humans-with-models/). |
 | [`writing-plans`](skills/writing-plans/SKILL.md) | The approach is decided; turn it into steps with verification. |
 | [`executing-plans`](skills/executing-plans/SKILL.md) | Run a written plan in small batches with review checkpoints. |
 | [`subagent-driven-development`](skills/subagent-driven-development/SKILL.md) | Run a plan in-session: one subagent per task, then spec and quality reviews. |
