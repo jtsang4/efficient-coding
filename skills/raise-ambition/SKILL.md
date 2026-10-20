@@ -1,6 +1,6 @@
 ---
 name: raise-ambition
-description: Make a task more ambitious: higher, deeper, or broader. Explicit invocation only.
+description: Make a task more ambitious — higher, deeper, or broader. Explicit invocation only.
 disable-model-invocation: true
 ---
 
