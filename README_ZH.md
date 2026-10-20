@@ -62,6 +62,7 @@ bunx skills add https://github.com/jtsang4/efficient-coding --skill diffusion-ma
 | [`problem-framing`](skills/problem-framing/SKILL.md) | 方案不断长出特例或讨论不收敛：检查问题本身是不是定义错了。 |
 | [`agent-native-redesign`](skills/agent-native-redesign/SKILL.md) | 假设 Agent 和 token 预算充裕，重新设计项目或流程。 |
 | [`prove-it`](skills/prove-it/SKILL.md) | 想法听起来可行但没被证明：先冻结通过/击杀标准，再用可运行的证据证明或推翻。 |
+| [`raise-ambition`](skills/raise-ambition/SKILL.md) | 任务或结果显得太保守：往它背后的目标、专家级深度或跨领域方向推进，并用模型自评以外的方式验证。需显式调用，不会自动触发。基于 Felix Rieseberg 的[文章](https://felixrieseberg.com/how-to-be-more-ambitious-a-tutorial-for-humans-with-models/)。 |
 | [`writing-plans`](skills/writing-plans/SKILL.md) | 方案已定：拆成带验证口径的执行步骤。 |
 | [`executing-plans`](skills/executing-plans/SKILL.md) | 按计划分批执行，每批设检查点。 |
 | [`subagent-driven-development`](skills/subagent-driven-development/SKILL.md) | 在当前会话按任务派发子 Agent，再做 spec 与质量两轮 review。 |
