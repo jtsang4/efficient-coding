@@ -97,6 +97,8 @@ Install any skill with `bunx skills add https://github.com/jtsang4/efficient-cod
 | Skill | Use it when |
 | --- | --- |
 | [`i-diagram`](skills/i-diagram/SKILL.md) | Draw an architecture, flow, sequence, state, mind-map or timeline diagram as one self-contained SVG with light and dark themes. |
+| [`brandkit`](skills/brandkit/SKILL.md) | Generate brand-guideline boards with logos, palettes, typography and mockups. Requires an image generator. |
+| [`svg-logo-designer`](skills/svg-logo-designer/SKILL.md) | Create SVG logos with multiple concepts, layouts, color variants and usage guidelines. |
 | [`codex-skill-creator`](skills/codex-skill-creator/SKILL.md) | Create, improve, benchmark and package Codex skills with paired eval runs and human review. |
 | [`use-remote-skill`](skills/use-remote-skill/SKILL.md) | Use a skill from another repo for one conversation, from an explicit source or a YAML catalog ([configuration](skills/use-remote-skill/references/configuration.md)). |
 
@@ -113,6 +115,8 @@ Install any skill with `bunx skills add https://github.com/jtsang4/efficient-cod
 | `executing-plans` | [`obra/superpowers`](https://github.com/obra/superpowers) | |
 | `subagent-driven-development` | [`obra/superpowers`](https://github.com/obra/superpowers) | |
 | `test-driven-development` | [`obra/superpowers`](https://github.com/obra/superpowers) | |
+| `brandkit` | [`Leonxlnx/imagegen-skills`](https://github.com/Leonxlnx/imagegen-skills/tree/beb16b0d0f4dae9a6f5cb04ea41e97b93a54ab8e/skills/brandkit), originally [`taste-skill`](https://github.com/Leonxlnx/taste-skill) | None. |
+| `svg-logo-designer` | [`rknall/claude-skills`](https://github.com/rknall/claude-skills/tree/ca7fbd0e07f824b119030f323da3409bc779f9bc/svg-logo-designer) | None. |
 
 </details>
 
@@ -145,4 +149,4 @@ Default engineering conventions recommended here. New ones are added as rows.
 
 ## License
 
-MIT. See [`LICENSE`](LICENSE).
+Original content: MIT. See [`LICENSE`](LICENSE). Third-party skills retain their upstream terms.

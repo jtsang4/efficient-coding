@@ -97,6 +97,8 @@ bunx skills add https://github.com/jtsang4/efficient-coding --skill diffusion-ma
 | Skill | 什么时候用 |
 | --- | --- |
 | [`i-diagram`](skills/i-diagram/SKILL.md) | 把架构、流程、时序、状态、思维导图或时间线画成单个自包含 SVG，支持明暗主题。 |
+| [`brandkit`](skills/brandkit/SKILL.md) | 生成包含标志、配色、字体和应用样机的品牌视觉规范板。需要图像生成能力。 |
+| [`svg-logo-designer`](skills/svg-logo-designer/SKILL.md) | 设计 SVG 标志，提供多套概念、布局、配色变体和使用规范。 |
 | [`codex-skill-creator`](skills/codex-skill-creator/SKILL.md) | 创建、改进、评测并打包 Codex skills，带成对 eval 和人工审阅。 |
 | [`use-remote-skill`](skills/use-remote-skill/SKILL.md) | 在当前会话临时使用其它仓库的 skill，来源可以是明确地址或 YAML 目录（[配置说明](skills/use-remote-skill/references/configuration.md)）。 |
 
@@ -113,6 +115,8 @@ bunx skills add https://github.com/jtsang4/efficient-coding --skill diffusion-ma
 | `executing-plans` | [`obra/superpowers`](https://github.com/obra/superpowers) | |
 | `subagent-driven-development` | [`obra/superpowers`](https://github.com/obra/superpowers) | |
 | `test-driven-development` | [`obra/superpowers`](https://github.com/obra/superpowers) | |
+| `brandkit` | [`Leonxlnx/imagegen-skills`](https://github.com/Leonxlnx/imagegen-skills/tree/beb16b0d0f4dae9a6f5cb04ea41e97b93a54ab8e/skills/brandkit)，原属 [`taste-skill`](https://github.com/Leonxlnx/taste-skill) | 无。 |
+| `svg-logo-designer` | [`rknall/claude-skills`](https://github.com/rknall/claude-skills/tree/ca7fbd0e07f824b119030f323da3409bc779f9bc/svg-logo-designer) | 无。 |
 
 </details>
 
@@ -145,4 +149,4 @@ bunx skills add https://github.com/jtsang4/efficient-coding --skill diffusion-ma
 
 ## License
 
-MIT 协议，详见 [`LICENSE`](LICENSE)。
+原创内容采用 MIT 协议，详见 [`LICENSE`](LICENSE)。第三方 skills 保留上游条款。
