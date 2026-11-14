@@ -99,6 +99,7 @@ Install any skill with `bunx skills add https://github.com/jtsang4/efficient-cod
 | [`i-diagram`](skills/i-diagram/SKILL.md) | Draw an architecture, flow, sequence, state, mind-map or timeline diagram as one self-contained SVG with light and dark themes. |
 | [`brandkit`](skills/brandkit/SKILL.md) | Generate brand-guideline boards with logos, palettes, typography and mockups. Requires an image generator. |
 | [`svg-logo-designer`](skills/svg-logo-designer/SKILL.md) | Create SVG logos with multiple concepts, layouts, color variants and usage guidelines. |
+| [`site-palette`](skills/site-palette/SKILL.md) | Pick a website's colour palette in a local picker: rounds of curated palettes on a realistic preview page that learn from your likes, then fine-tuning with live WCAG and colour-blindness checks, exported as light and dark CSS variables and design tokens. Uses [Radix Colors](https://github.com/radix-ui/colors) (MIT). Needs Node or Bun. |
 | [`codex-skill-creator`](skills/codex-skill-creator/SKILL.md) | Create, improve, benchmark and package Codex skills with paired eval runs and human review. |
 | [`use-remote-skill`](skills/use-remote-skill/SKILL.md) | Use a skill from another repo for one conversation, from an explicit source or a YAML catalog ([configuration](skills/use-remote-skill/references/configuration.md)). |
 

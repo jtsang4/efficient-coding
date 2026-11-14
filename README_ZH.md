@@ -99,6 +99,7 @@ bunx skills add https://github.com/jtsang4/efficient-coding --skill diffusion-ma
 | [`i-diagram`](skills/i-diagram/SKILL.md) | 把架构、流程、时序、状态、思维导图或时间线画成单个自包含 SVG，支持明暗主题。 |
 | [`brandkit`](skills/brandkit/SKILL.md) | 生成包含标志、配色、字体和应用样机的品牌视觉规范板。需要图像生成能力。 |
 | [`svg-logo-designer`](skills/svg-logo-designer/SKILL.md) | 设计 SVG 标志，提供多套概念、布局、配色变体和使用规范。 |
+| [`site-palette`](skills/site-palette/SKILL.md) | 在本地选色页面里为网站挑配色：在贴近真实的预览页上一轮轮展示精选配色，并根据你的喜好调整方向；再实时检查 WCAG 对比度和色盲可读性做微调，最后导出亮暗两套 CSS 变量和设计 token。配色基于 [Radix Colors](https://github.com/radix-ui/colors)（MIT）。需要 Node 或 Bun。 |
 | [`codex-skill-creator`](skills/codex-skill-creator/SKILL.md) | 创建、改进、评测并打包 Codex skills，带成对 eval 和人工审阅。 |
 | [`use-remote-skill`](skills/use-remote-skill/SKILL.md) | 在当前会话临时使用其它仓库的 skill，来源可以是明确地址或 YAML 目录（[配置说明](skills/use-remote-skill/references/configuration.md)）。 |
 

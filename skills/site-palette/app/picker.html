@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Site palette picker</title>
+<style>
+/* ---------- picker chrome: neutral grey so it doesn't bias colour judgement ---------- */
+:root{--c-bg:#f4f4f5;--c-panel:#fff;--c-soft:#f4f4f5;--c-line:#e4e4e7;--c-text:#18181b;--c-muted:#71717a;--c-ok:#15803d;--c-bad:#b91c1c;--c-warn:#a16207}
+*{box-sizing:border-box}
+body{margin:0;background:var(--c-bg);color:var(--c-text);font:13.5px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+button,select,input{font:inherit;color:inherit}
+[hidden]{display:none!important}
+.top{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:9px 18px;background:rgba(255,255,255,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--c-line)}
+.top h1{font-size:15px;margin:0;font-weight:700}
+.top .proj{color:var(--c-muted)}
+.top .sp{flex:1}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:12.5px;font-weight:600;background:var(--c-soft);border:1px solid var(--c-line);cursor:pointer;white-space:nowrap}
+.chip.ok{color:var(--c-ok)}.chip.bad{color:var(--c-bad)}
+.btn{border:1px solid var(--c-line);background:#fff;border-radius:8px;padding:6px 12px;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:#a1a1aa}
+.btn.main{background:var(--c-text);color:#fff;border-color:var(--c-text);font-weight:600}
+.btn.main:hover{background:#3f3f46}
+.btn.sm{padding:2px 9px;font-size:12px}
+select,input[type=text]{border:1px solid var(--c-line);border-radius:7px;padding:4px 8px;background:#fff}
+.tabs{display:inline-flex;background:var(--c-soft);border:1px solid var(--c-line);border-radius:9px;padding:2px;gap:2px}
+.tabs button{border:0;background:none;padding:3px 11px;border-radius:7px;cursor:pointer;font-size:12.5px;color:var(--c-muted)}
+.tabs button.on{background:#fff;color:var(--c-text);box-shadow:0 1px 2px rgba(0,0,0,.1);font-weight:600}
+.hint{color:var(--c-muted);font-size:12px;margin:0 0 8px}
+
+/* ---------- explore ---------- */
+#explore{padding:16px 20px 60px}
+.ex-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.ex-head h2{margin:0;font-size:17px}
+.ex-head .sp{flex:1}
+.ex-sub{color:var(--c-muted);margin:0 0 14px;max-width:900px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(440px,1fr));gap:16px}
+.cand{background:#fff;border:2px solid var(--c-line);border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:8px}
+.cand.liked{border-color:#16a34a;box-shadow:0 0 0 2px rgba(22,163,74,.18)}
+.cand.disliked{opacity:.45}
+.cand .thumb{border-radius:10px;overflow:hidden;height:328px;position:relative;cursor:pointer}
+.cand .thumb .site{zoom:.46;width:950px;pointer-events:none}
+.cand .meta{display:flex;align-items:center;gap:8px}
+.cand .meta .nm{flex:1;font-size:12.5px;line-height:1.35}
+.cand .meta .nm b{display:block;font-size:13px}
+.cand .meta .nm span{color:var(--c-muted)}
+.cand .strip{display:flex;height:10px;border-radius:4px;overflow:hidden}
+.cand .strip i{flex:1}
+.vote{width:34px;height:30px;border-radius:8px;border:1px solid var(--c-line);background:#fff;cursor:pointer;font-size:15px;line-height:1}
+.vote.like.on{background:#16a34a;color:#fff;border-color:#16a34a}
+.vote.nope.on{background:#52525b;color:#fff;border-color:#52525b}
+.tag{font-size:10.5px;border-radius:4px;padding:0 6px;background:#e0e7ff;color:#3730a3;font-weight:600;white-space:nowrap}
+.drop{border:1.5px dashed #a1a1aa;border-radius:10px;padding:8px 12px;color:var(--c-muted);font-size:12.5px;cursor:pointer;background:#fff}
+.drop.over{border-color:var(--c-text);color:var(--c-text)}
+.liked-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 14px;font-size:12.5px;color:var(--c-muted)}
+.liked-bar .mini{display:flex;height:22px;width:90px;border-radius:5px;overflow:hidden;cursor:pointer;border:1px solid var(--c-line)}
+.liked-bar .mini i{flex:1}
+
+/* ---------- fine-tune ---------- */
+.layout{display:grid;grid-template-columns:330px 1fr;align-items:start}
+aside{position:sticky;top:51px;height:calc(100vh - 51px);overflow:auto;padding:12px 16px 40px;border-right:1px solid var(--c-line);background:var(--c-panel)}
+aside h2{font-size:11.5px;text-transform:uppercase;letter-spacing:.7px;color:var(--c-muted);margin:16px 0 6px;font-weight:600}
+.f{display:flex;align-items:center;gap:8px;margin:6px 0}
+.f>span:first-child{width:96px;flex:none;color:var(--c-muted);font-size:12.5px}
+.f select{flex:1;min-width:0}
+.f input[type=text]{width:96px;font-family:ui-monospace,Menlo,monospace;font-size:12.5px}
+.f label.row{flex:1;display:flex;gap:6px;align-items:flex-start;font-size:12.5px}
+.f label.row input{margin-top:3px}
+.sw1{width:22px;height:22px;border-radius:6px;flex:none;border:1px solid rgba(0,0,0,.1)}
+input[type=color]{width:34px;height:28px;padding:1px;border:1px solid var(--c-line);border-radius:7px;background:#fff;cursor:pointer}
+main{padding:14px 20px 60px;min-width:0}
+.panel{background:var(--c-panel);border:1px solid var(--c-line);border-radius:12px;padding:14px 16px;margin-bottom:16px}
+.panel>h2{font-size:14px;margin:0 0 10px;display:flex;align-items:center;gap:10px}
+.panel>h2 .sp{flex:1}
+.previews{display:grid;gap:14px}
+.previews.both{grid-template-columns:1fr 1fr}
+.checks li{margin:3px 0}.checks ul{margin:4px 0 8px;padding-left:18px}
+.checks .bad{color:var(--c-bad)}.checks .warn{color:var(--c-warn)}.checks .ok{color:var(--c-ok)}
+.scale{display:flex;align-items:center;gap:10px;margin:0 0 5px}
+.scale .nm{width:150px;flex:none;font-size:12px}
+.scale .nm b{font-size:12.5px}
+.scale .sw{flex:1;display:flex;border-radius:6px;overflow:hidden}
+.scale .sw div{flex:1;height:30px;font:9.5px/1 ui-monospace,Menlo,monospace;display:flex;align-items:flex-end;padding:3px;cursor:pointer}
+table.tok{width:100%;border-collapse:collapse;font-size:12.5px}
+table.tok th{text-align:left;font-weight:600;color:var(--c-muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;padding:6px;border-bottom:1px solid var(--c-line)}
+table.tok td{padding:5px 6px;border-bottom:1px solid var(--c-soft);vertical-align:middle}
+table.tok tr.grp td{font-weight:700;padding-top:12px;color:var(--c-muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.5px}
+table.tok .tn{font-family:ui-monospace,Menlo,monospace;font-weight:600}
+table.tok .use{color:var(--c-muted);font-size:11.5px}
+.cell{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.cell .chipc{width:26px;height:22px;border-radius:6px;border:1px solid rgba(0,0,0,.12);flex:none}
+.cell select{font-size:12px;padding:2px 4px}
+.ratio{font-variant-numeric:tabular-nums;font-size:11.5px;white-space:nowrap}
+.ratio.ok{color:var(--c-ok)}.ratio.bad{color:var(--c-bad);font-weight:700}
+.tg{font-size:10.5px;border-radius:4px;padding:0 5px;background:var(--c-soft);color:var(--c-muted);white-space:nowrap}
+.tg.auto{background:#fef3c7;color:#92400e}.tg.ov{background:#e0e7ff;color:#3730a3}
+pre.code{background:#18181b;color:#e4e4e7;border-radius:10px;padding:12px 14px;max-height:420px;overflow:auto;font-size:12px;line-height:1.45;margin:8px 0 0}
+#toast{position:fixed;bottom:20px;left:50%;transform:translate(-50%,16px);background:var(--c-text);color:#fff;padding:7px 14px;border-radius:999px;opacity:0;transition:.2s;pointer-events:none;z-index:50}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+#overlay{position:fixed;inset:0;background:rgba(24,24,27,.55);display:none;align-items:center;justify-content:center;z-index:60}
+#overlay.on{display:flex}
+#overlay div{background:#fff;border-radius:14px;padding:26px 30px;max-width:420px;text-align:center}
+@media (max-width:980px){.layout{grid-template-columns:1fr}aside{position:static;height:auto}.previews.both{grid-template-columns:1fr}}
+
+/* ---------- shared preview base: every colour is a semantic token ---------- */
+.site{container-type:inline-size;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:12px;overflow:hidden;font:14px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+.site h1,.site h2,.site h3{margin:0;color:var(--text)}
+.site .lnk{color:var(--primary-text);text-decoration:underline;text-underline-offset:2px}
+
+/* gaming template */
+.gm nav{display:flex;align-items:center;gap:16px;padding:11px 20px;background:var(--surface);border-bottom:1px solid var(--border)}
+.gm .logo{display:flex;align-items:center;gap:8px;font-weight:800;font-size:15px}
+.gm .logo i{width:24px;height:24px;border-radius:7px;background:var(--gradient-brand);display:block}
+.gm .search{flex:1;max-width:340px;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:6px 12px;color:var(--text-muted);font-size:13px}
+.gm .nl{display:flex;gap:14px;color:var(--text-muted);font-size:13.5px}
+.gm .nl b{color:var(--text);font-weight:650;border-bottom:2px solid var(--primary);padding-bottom:2px}
+.gm .av{width:28px;height:28px;border-radius:50%;background:var(--gradient-brand);margin-left:auto}
+.gm .hero{position:relative;margin:16px 20px;border-radius:14px;overflow:hidden;height:220px;display:flex;align-items:flex-end;background:radial-gradient(120% 140% at 85% 10%,#ffcf6b 0,#e7612f 26%,#5b1d6e 58%,#120a2a 100%)}
+.gm .hero::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,.78),rgba(0,0,0,0) 72%)}
+.gm .hero .c{position:relative;z-index:1;padding:18px 20px;color:#fff}
+.gm .hero h2{color:#fff;font-size:28px;letter-spacing:-.01em;margin:4px 0 10px}
+.gm .chips{display:flex;gap:6px}
+.gm .chip{background:var(--accent-subtle);color:var(--accent-text);border:1px solid var(--accent);border-radius:999px;padding:1px 9px;font-size:11.5px;font-weight:650}
+.gm .hero .chip{background:rgba(0,0,0,.4);color:#fff;border-color:rgba(255,255,255,.35)}
+.gm .btns{display:flex;gap:8px}
+.gm .b{border-radius:9px;padding:9px 16px;font-weight:700;font-size:14px}
+.gm .bp{background:var(--primary);color:var(--on-primary)}
+.gm .bs{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.4)}
+.gm .tabsbar{display:flex;gap:8px;padding:0 20px 6px}
+.gm .tb{padding:5px 12px;border-radius:999px;font-size:12.5px;font-weight:600;color:var(--text-muted);border:1px solid var(--border)}
+.gm .tb.on{background:var(--primary-subtle);color:var(--primary-text);border-color:transparent}
+.gm .row{padding:8px 20px 16px}
+.gm .row h3{margin:2px 0 10px;font-size:16px;display:flex;justify-content:space-between;align-items:baseline}
+.gm .row h3 .lnk{font-size:12.5px;font-weight:600;text-decoration:none}
+.gm .cards{display:grid;grid-template-columns:repeat(5,1fr);gap:11px}
+.gm .card{background:var(--surface);border:1px solid var(--border);border-radius:11px;overflow:hidden}
+.gm .art{height:118px;position:relative}
+.gm .rate{position:absolute;top:7px;right:7px;background:var(--accent);color:var(--on-accent);font-weight:800;font-size:11.5px;border-radius:6px;padding:1px 6px}
+.gm .card .t{padding:8px 10px 10px}
+.gm .card b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gm .card span{color:var(--text-muted);font-size:11.5px}
+.gm .bar{height:5px;border-radius:5px;background:var(--surface-hover);margin-top:7px;overflow:hidden}
+.gm .bar i{display:block;height:100%;background:var(--gradient-brand)}
+.gm .split{display:grid;grid-template-columns:1.3fr 1fr;gap:12px;padding:0 20px 20px}
+.gm .stats{background:var(--bg-subtle);border:1px solid var(--border);border-radius:11px;padding:12px 14px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.gm .stat b{display:block;font-size:22px;color:var(--text)}
+.gm .stat span{font-size:11.5px;color:var(--text-muted)}
+.gm .stat .up{color:var(--success-text);font-weight:700}
+.gm .toast{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:11px;padding:10px 12px}
+.gm .toast .m{width:32px;height:32px;border-radius:8px;background:var(--gradient-brand);flex:none}
+.gm .toast span{color:var(--text-muted);font-size:12.5px;display:block}
+@container (max-width:720px){.gm .cards{grid-template-columns:repeat(3,1fr)}.gm .cards .card:nth-child(n+4){display:none}.gm .split{grid-template-columns:1fr}.gm .nl{display:none}}
+
+/* saas template */
+.ss nav{display:flex;align-items:center;gap:20px;padding:12px 22px;background:var(--surface);border-bottom:1px solid var(--border)}
+.ss .logo{display:flex;align-items:center;gap:8px;font-weight:700}.ss .logo i{width:22px;height:22px;border-radius:7px;background:var(--primary);display:block}
+.ss .links{display:flex;gap:16px;color:var(--text-muted);font-size:13.5px}
+.ss .nr{margin-left:auto;display:flex;gap:8px}
+.ss .bt{display:inline-flex;border-radius:8px;padding:7px 14px;font-weight:600;font-size:13.5px;border:1px solid transparent;white-space:nowrap}
+.ss .bp{background:var(--primary);color:var(--on-primary)}
+.ss .bs{background:var(--surface);color:var(--text);border-color:var(--border-strong)}
+.ss .hero{padding:44px 24px 32px;text-align:center}
+.ss .badge{display:inline-block;background:var(--primary-subtle);color:var(--primary-text);border-radius:999px;padding:3px 12px;font-size:12.5px;font-weight:600;margin-bottom:12px}
+.ss .hero h1{font-size:32px;line-height:1.15;letter-spacing:-.02em;margin-bottom:10px}
+.ss .hero p{color:var(--text-muted);max-width:520px;margin:0 auto 18px}
+.ss .cta{display:flex;gap:10px;justify-content:center}
+.ss .feats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;padding:0 22px 26px}
+.ss .card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px}
+.ss .card h3{font-size:15px;margin:10px 0 4px}.ss .card p{margin:0 0 6px;color:var(--text-muted);font-size:13px}
+.ss .ic{width:34px;height:34px;border-radius:9px;background:var(--primary-subtle);color:var(--primary-text);display:grid;place-items:center;font-weight:800}
+.ss .ic.acc{background:var(--accent-subtle);color:var(--accent-text)}
+.ss .split{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:22px;background:var(--bg-subtle);border-top:1px solid var(--border)}
+.ss label{display:block;font-size:12.5px;font-weight:600;margin:10px 0 4px}
+.ss .in{background:var(--surface);border:1px solid var(--border-strong);border-radius:8px;padding:7px 10px;font-size:13.5px}
+.ss .in.focus{outline:2px solid var(--ring);outline-offset:2px;color:var(--text-muted)}
+.ss .alerts{display:grid;gap:8px;align-content:start}
+.ss .al{display:flex;gap:10px;border-radius:9px;padding:9px 12px;font-size:13px;border:1px solid}
+.ss .al .d{width:9px;height:9px;border-radius:50%;margin-top:6px;flex:none}.ss .al strong{display:block}
+.ss .al.success{background:var(--success-subtle);border-color:var(--success-border);color:var(--success-text)}.ss .al.success .d{background:var(--success)}
+.ss .al.warning{background:var(--warning-subtle);border-color:var(--warning-border);color:var(--warning-text)}.ss .al.warning .d{background:var(--warning)}
+.ss .al.danger{background:var(--danger-subtle);border-color:var(--danger-border);color:var(--danger-text)}.ss .al.danger .d{background:var(--danger)}
+.ss .al.info{background:var(--info-subtle);border-color:var(--info-border);color:var(--info-text)}.ss .al.info .d{background:var(--info)}
+.ss .pill{background:var(--accent);color:var(--on-accent);font-size:11.5px;font-weight:700;border-radius:999px;padding:2px 9px;margin-left:8px}
+.ss .foot{display:flex;gap:16px;padding:14px 22px;border-top:1px solid var(--border);color:var(--text-muted);font-size:12.5px;background:var(--surface)}
+@container (max-width:720px){.ss .feats,.ss .split{grid-template-columns:1fr}.ss .links{display:none}}
+</style>
+</head>
+<body>
+<div class="top">
+  <h1>Site palette</h1><span class="proj" id="proj"></span>
+  <span class="tabs" id="mode"><button data-v="explore" class="on">1 · Explore</button><button data-v="tune">2 · Fine-tune</button></span>
+  <span class="chip" id="sum" hidden></span>
+  <span class="sp"></span>
+  <label>Page <select id="tplSel"><option value="gaming">Gaming / media</option><option value="saas">SaaS / product</option></select></label>
+  <label>Simulate <select id="cvd"><option value="none">Normal vision</option><option value="protan">Protanopia</option><option value="deutan">Deuteranopia</option><option value="tritan">Tritanopia</option><option value="mono">Greyscale</option></select></label>
+  <button class="btn" id="dl">Download files</button>
+  <button class="btn main" id="send" hidden>Send to Claude</button>
+</div>
+
+<section id="explore">
+  <div class="ex-head">
+    <h2 id="roundTitle">Round 1</h2>
+    <span class="tabs" id="thTabs"><button data-v="dark" class="on">Dark</button><button data-v="light">Light</button></span>
+    <span class="sp"></span>
+    <label class="drop" id="drop">＋ Drop a screenshot or artwork you like <input type="file" id="file" accept="image/*" hidden></label>
+    <button class="btn" id="resetTaste">Start over</button>
+    <button class="btn main" id="next">Next round →</button>
+  </div>
+  <p class="ex-sub" id="exSub">Every colour here comes from hand-tuned Radix scales. Mark each candidate ♥ (like) or ✕ (not for me); unmarked ones count as neutral. The next round moves toward what you liked and away from what you didn't. When one feels close, press <b>Fine-tune →</b>.</p>
+  <div class="liked-bar" id="likedBar"></div>
+  <div class="grid" id="grid"></div>
+</section>
+
+<div class="layout" id="tune" hidden>
+<aside>
+  <p class="hint" id="fromCand"></p>
+  <h2>Brand</h2>
+  <div class="f"><span>Family</span><i class="sw1" id="bSw"></i><select id="bFam"></select></div>
+  <div class="f"><span>Exact colour</span><input type="color" id="bCol"><input type="text" id="bHex" placeholder="none" spellcheck="false"><button class="btn sm" id="bClear">×</button></div>
+  <p class="hint">Optional. Your exact brand colour replaces step 9 of the family; the other steps stay hand-tuned.</p>
+  <h2>Accent</h2>
+  <div class="f"><span>Family</span><i class="sw1" id="aSw"></i><select id="aFam"></select></div>
+  <h2>Background</h2>
+  <div class="f"><span>Character</span><select id="bgMode"><option value="neutral">Neutral grey</option><option value="tinted">Tinted with brand</option><option value="deep">Deep colour</option></select></div>
+  <div class="f" id="bgFamRow"><span>Family</span><i class="sw1" id="gSw"></i><select id="bgFam"></select></div>
+  <div class="f"><span>Text grey</span><select id="nFam"></select></div>
+  <h2>Status colours</h2>
+  <div class="f"><span>Success</span><select data-status="success"></select></div>
+  <div class="f"><span>Warning</span><select data-status="warning"></select></div>
+  <div class="f"><span>Danger</span><select data-status="danger"></select></div>
+  <div class="f"><span>Info</span><select data-status="info"></select></div>
+  <h2>Accessibility</h2>
+  <div class="f"><span>Target</span><select data-path="rules.target"><option value="AA">WCAG AA (4.5:1)</option><option value="AAA">WCAG AAA (7:1)</option></select></div>
+  <div class="f"><span>Button text</span><select data-path="rules.buttonText"><option value="bold">Bold labels, 3:1 (Radix style)</option><option value="strict">Strict, 4.5:1</option></select></div>
+  <div class="f"><span>Auto-fix</span><label class="row"><input type="checkbox" data-path="rules.enforce"> move failing tokens to a passing step</label></div>
+  <h2>Export</h2>
+  <div class="f"><span>Format</span><select data-path="export.format"><option value="hex">hex</option><option value="oklch">oklch()</option></select></div>
+  <div class="f"><span>Prefix</span><input type="text" data-path="export.prefix" spellcheck="false"></div>
+  <div class="f"><span>Dark selector</span><input type="text" data-path="export.darkSelector" spellcheck="false" style="width:150px"></div>
+  <div class="f"><span>OS setting</span><label class="row"><input type="checkbox" data-path="export.media"> follow prefers-color-scheme</label></div>
+</aside>
+<main id="stage">
+  <section class="panel"><h2>Preview <span class="sp"></span><span class="tabs" id="pvTabs"><button data-v="light">Light</button><button data-v="dark">Dark</button><button data-v="both" class="on">Both</button></span></h2><div class="previews both" id="previews"></div></section>
+  <section class="panel checks" id="checksPanel"><h2>Checks</h2><div id="checks"></div></section>
+  <section class="panel"><h2>Scales <span class="sp"></span><span class="hint" style="margin:0">Radix steps 1–12 · light and dark are tuned separately · click to copy</span></h2><div id="scales"></div></section>
+  <section class="panel"><h2>Semantic tokens <span class="sp"></span><button class="btn sm" id="resetOv">Clear manual overrides</button></h2>
+    <p class="hint">Components use these names. Each maps to a scale step with a fixed job (1 page, 2 subtle bg, 3 element bg, 6–8 borders, 9 solid, 10 hover, 11–12 text), so dark mode works by swapping the scales.</p>
+    <table class="tok"><thead><tr><th>Token</th><th>Light</th><th>Dark</th></tr></thead><tbody id="tok"></tbody></table></section>
+  <section class="panel"><h2>Export <span class="sp"></span><span class="tabs" id="exTabs"><button data-v="css" class="on">CSS variables</button><button data-v="json">Design tokens JSON</button></span><button class="btn sm" id="copyEx">Copy</button></h2><pre class="code" id="ex"></pre></section>
+</main>
+</div>
+
+<div id="toast"></div>
+<div id="overlay"><div><h3>Sent to Claude ✓</h3><p>Your palette was saved. You can close this tab and return to the conversation.</p></div></div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <filter id="f-protan" color-interpolation-filters="linearRGB"><feColorMatrix type="matrix" values="0.152286 1.052583 -0.204868 0 0  0.114503 0.786281 0.099216 0 0  -0.003882 -0.048116 1.051998 0 0  0 0 0 1 0"/></filter>
+  <filter id="f-deutan" color-interpolation-filters="linearRGB"><feColorMatrix type="matrix" values="0.367322 0.860646 -0.227968 0 0  0.280085 0.672501 0.047413 0 0  -0.011820 0.042940 0.968881 0 0  0 0 0 1 0"/></filter>
+  <filter id="f-tritan" color-interpolation-filters="linearRGB"><feColorMatrix type="matrix" values="1.255528 -0.076749 -0.178779 0 0  -0.078411 0.930809 0.147602 0 0  0.004733 0.691367 0.303900 0 0  0 0 0 1 0"/></filter>
+  <filter id="f-mono" color-interpolation-filters="linearRGB"><feColorMatrix type="matrix" values="0.2126 0.7152 0.0722 0 0  0.2126 0.7152 0.0722 0 0  0.2126 0.7152 0.0722 0 0  0 0 0 1 0"/></filter>
+</defs></svg>
+
+<template id="tpl-gaming">
+  <div class="site gm">
+    <nav><div class="logo"><i></i><span class="pname"></span></div><div class="search">Search 12,408 games…</div><div class="nl"><b>Library</b><span>Wishlist</span><span>Deals</span><span>Friends</span></div><div class="av"></div></nav>
+    <div class="hero"><div class="c"><div class="chips"><span class="chip">Action RPG</span><span class="chip">Co-op</span></div><h2>Starfall Odyssey</h2>
+      <div class="btns"><span class="b bp">+ Add to collection</span><span class="b bs">♡ Wishlist</span></div></div></div>
+    <div class="tabsbar"><span class="tb on">All games</span><span class="tb">Playing</span><span class="tb">Backlog</span><span class="tb">Completed</span></div>
+    <div class="row"><h3>Continue playing <span class="lnk">View library →</span></h3><div class="cards">
+      <div class="card"><div class="art" style="background:linear-gradient(160deg,#2b5876,#4e4376)"><span class="rate">9.1</span></div><div class="t"><b>Neon Drift</b><span>PC · 42h</span><div class="bar"><i style="width:72%"></i></div></div></div>
+      <div class="card"><div class="art" style="background:linear-gradient(160deg,#134e5e,#71b280)"><span class="rate">8.4</span></div><div class="t"><b>Moss Kingdom</b><span>Switch · 18h</span><div class="bar"><i style="width:40%"></i></div></div></div>
+      <div class="card"><div class="art" style="background:linear-gradient(160deg,#ff512f,#dd2476)"><span class="rate">9.6</span></div><div class="t"><b>Blaze Runner</b><span>PS5 · 61h</span><div class="bar"><i style="width:90%"></i></div></div></div>
+      <div class="card"><div class="art" style="background:linear-gradient(160deg,#c9d6ff,#7f7fd5)"><span class="rate">7.8</span></div><div class="t"><b>Cloud Atlas</b><span>PC · 9h</span><div class="bar"><i style="width:22%"></i></div></div></div>
+      <div class="card"><div class="art" style="background:linear-gradient(160deg,#3a1c71,#ffaf7b)"><span class="rate">8.9</span></div><div class="t"><b>Dusk Hollow</b><span>Xbox · 27h</span><div class="bar"><i style="width:55%"></i></div></div></div>
+    </div></div>
+    <div class="split">
+      <div class="stats"><div class="stat"><b>214</b><span>Games owned</span></div><div class="stat"><b>38</b><span>Completed <em class="up">+3</em></span></div><div class="stat"><b>1,206h</b><span>Played this year</span></div></div>
+      <div class="toast"><div class="m"></div><div><b>Achievement unlocked</b><span>Completionist: 100% in Blaze Runner</span></div></div>
+    </div>
+  </div>
+</template>
+
+<template id="tpl-saas">
+  <div class="site ss">
+    <nav><div class="logo"><i></i><span class="pname"></span></div><div class="links"><span>Product</span><span>Pricing</span><span>Docs</span></div><div class="nr"><span class="bt">Sign in</span><span class="bt bp">Get started</span></div></nav>
+    <div class="hero"><span class="badge">New · Version 2.0 is here</span><h1>Build something people love</h1><p>Body copy in the muted text colour, so you can judge how comfortable long text is against the background.</p>
+      <div class="cta"><span class="bt bp">Start free trial</span><span class="bt bs">Book a demo</span></div></div>
+    <div class="feats">
+      <div class="card"><div class="ic">⚡</div><h3>Fast by default</h3><p>Cards sit on the surface colour.</p><span class="lnk">Learn more</span></div>
+      <div class="card"><div class="ic acc">★</div><h3>Accent moments<span class="pill">New</span></h3><p>The accent is used sparingly.</p><span class="lnk">See examples</span></div>
+      <div class="card"><div class="ic">✓</div><h3>Accessible</h3><p>Pairings are checked against WCAG.</p><span class="lnk">Read the report</span></div>
+    </div>
+    <div class="split">
+      <div class="card"><h3>Create your account</h3><label>Email</label><div class="in">ada@example.com</div><label>Password</label><div class="in focus">••••••••</div><div style="margin-top:12px"><span class="bt bp">Create account</span></div></div>
+      <div class="alerts">
+        <div class="al success"><i class="d"></i><div><strong>Payment received</strong>Invoice #1042 has been paid.</div></div>
+        <div class="al warning"><i class="d"></i><div><strong>Trial ends in 3 days</strong>Add a card to keep your projects.</div></div>
+        <div class="al danger"><i class="d"></i><div><strong>Deployment failed</strong>Build step exited with code 1.</div></div>
+        <div class="al info"><i class="d"></i><div><strong>Maintenance</strong>Sunday 02:00–03:00 UTC.</div></div>
+      </div>
+    </div>
+    <div class="foot"><span>© 2026 <span class="pname"></span></span><span>Privacy</span><span>Terms</span></div>
+  </div>
+</template>
+
+<script id="brief" type="application/json">null</script>
+<script src="radix-colors.js"></script>
+<script src="palette-core.js"></script>
+<script src="picker.js"></script>
+</body>
+</html>
